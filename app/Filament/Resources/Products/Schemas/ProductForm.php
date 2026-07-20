@@ -14,6 +14,7 @@ use App\Models\Category;
 use Illuminate\Database\Eloquent\Model;
 
 use App\Models\Product;
+use App\Models\ProductImage;
 use Illuminate\Support\Str;
 
 class ProductForm
@@ -39,12 +40,30 @@ class ProductForm
                     ->prefix('₹'),
                 FileUpload::make('image_path')
                     ->disk('public')
-                    ->label('Product Image')
+                    ->label('Primary Image (Thumbnail)')
                     ->directory('products')
                     ->image()
                     ->maxSize(5120)
                     ->saveUploadedFileUsing(fn ($file) => \App\Services\ImageOptimizer::optimize($file, 'products', 'public'))
                     ->required(),
+                FileUpload::make('gallery_images')
+                    ->disk('public')
+                    ->label('Gallery Images (up to 4 additional)')
+                    ->directory('products')
+                    ->image()
+                    ->multiple()
+                    ->maxFiles(4)
+                    ->maxSize(5120)
+                    ->reorderable()
+                    ->saveUploadedFileUsing(fn ($file) => \App\Services\ImageOptimizer::optimize($file, 'products', 'public'))
+                    ->afterStateHydrated(function (FileUpload $component, ?Model $record) {
+                        if ($record && $record->images->isNotEmpty()) {
+                            $component->state(
+                                $record->images->pluck('image_path')->toArray()
+                            );
+                        }
+                    })
+                    ->columnSpanFull(),
                 Select::make('category_id')
                     ->label('Category')
                     ->relationship('category', 'name')
@@ -60,6 +79,12 @@ class ProductForm
                             }
                         }
                     }),
+                Select::make('brand_id')
+                    ->label('Brand')
+                    ->relationship('brand', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->nullable(),
                 Group::make()
                     ->schema(function ($get, ?Model $record = null) {
                         $categoryId = $get('category_id');
@@ -69,8 +94,8 @@ class ProductForm
 
                         return $category->filterGroups->map(function ($group) use ($record, $category) {
                             $options = $category->filterValues()
-                                ->where('filter_group_id', $group->id)
-                                ->pluck('value', 'id');
+                                ->where('filter_values.filter_group_id', $group->id)
+                                ->pluck('filter_values.value', 'filter_values.id');
 
                             return CheckboxList::make("filter_group_{$group->id}")
                                 ->label($group->name)
@@ -80,7 +105,7 @@ class ProductForm
                                 ->default(function () use ($record, $group) {
                                     if (!$record) return [];
                                     return $record->filterValues()
-                                        ->where('filter_group_id', $group->id)
+                                        ->where('filter_values.filter_group_id', $group->id)
                                         ->pluck('filter_values.id')
                                         ->toArray();
                                 });
@@ -92,7 +117,16 @@ class ProductForm
                     ->numeric()
                     ->default(0),
                 Toggle::make('is_featured')
-                    ->required(),
+                    ->label('Featured')
+                    ->default(false),
+                Toggle::make('is_top_deal')
+                    ->label('Top Deals')
+                    ->default(false)
+                    ->helperText('Show in Top Deals section on homepage'),
+                Toggle::make('is_bestseller')
+                    ->label('Best Sellers')
+                    ->default(false)
+                    ->helperText('Show in Best Sellers section on homepage'),
             ]);
     }
 }

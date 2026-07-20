@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Shopping Cart - LuxeShop')
+@section('title', 'Shopping Cart - Apna Mobile Hub')
 
 @section('content')
 <div class="container">
@@ -42,7 +42,7 @@
                         <!-- Remove Button -->
                         <div class="cart-item-remove-col">
                             <button class="cart-remove-btn" onclick="removeFromCart({{ $id }})" title="Remove Item">
-                                <i data-lucide="trash-2"></i>
+                                <i class="fa-solid fa-circle"></i>
                             </button>
                         </div>
                     </div>
@@ -115,9 +115,12 @@
                                 <textarea id="notes" name="notes" class="form-control" rows="2" placeholder="e.g. Please deliver after 5 PM"></textarea>
                             </div>
                             
-                            <button type="submit" class="btn-checkout-whatsapp">
-                                <i data-lucide="message-circle" class="wa-icon"></i> Place Order via WhatsApp
+                            <button type="submit" class="btn-checkout-whatsapp" @if($grandTotal < 500) disabled style="opacity: 0.5; cursor: not-allowed;" title="Minimum order value is 500" @endif>
+                                <i class="fa-solid fa-message" class="wa-icon"></i> Place Order via WhatsApp
                             </button>
+                            @if($grandTotal < 500)
+                                <p style="font-size: 11px; color: #ef4444; text-align: center; margin-top: 8px; font-weight: 700;">Minimum order value must be ₹500.</p>
+                            @endif
                         </form>
                     </div>
                 </div>

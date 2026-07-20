@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Product;
+use App\Models\ProductImage;
 use App\Models\Category;
 use App\Models\FilterGroup;
 use App\Models\FilterValue;
@@ -22,6 +23,7 @@ class ProductSeeder extends Seeder
         DB::table('product_filter_value')->truncate();
         DB::table('category_filter_group')->truncate();
         DB::table('category_filter_value')->truncate();
+        ProductImage::truncate();
         FilterValue::truncate();
         FilterGroup::truncate();
         Product::truncate();
@@ -67,9 +69,19 @@ class ProductSeeder extends Seeder
 
         $phoneCasesCat->filterValues()->attach([$blackVal->id, $purpleVal->id, $blueVal->id]);
 
-        // 3. Create products
+        // 3. Create products with gallery images
+        $seedGallery = function (Product $product, array $imagePaths) {
+            foreach ($imagePaths as $i => $path) {
+                ProductImage::create([
+                    'product_id' => $product->id,
+                    'image_path' => $path,
+                    'sort_order' => $i,
+                ]);
+            }
+        };
+
         // Chargers
-        Product::create([
+        $p1 = Product::create([
             'name' => 'AMH 65W GaN Charger',
             'slug' => 'amh-65w-gan-charger',
             'description' => 'Fast charging compact adapter with dual USB-C ports for phones and laptops.',
@@ -81,9 +93,10 @@ class ProductSeeder extends Seeder
             'rating' => 4.9,
             'rating_count' => 142,
         ]);
+        $seedGallery($p1, ['/images/cat_cables.png', '/images/cat_power_banks.png', '/images/hero_accessories.png']);
 
         // Cables
-        Product::create([
+        $p2 = Product::create([
             'name' => 'Type-C to C Cable (100W)',
             'slug' => 'type-c-to-c-cable-100w',
             'description' => 'Durable braided charging cable supporting up to 100W power delivery.',
@@ -95,9 +108,10 @@ class ProductSeeder extends Seeder
             'rating' => 4.8,
             'rating_count' => 96,
         ]);
+        $seedGallery($p2, ['/images/cat_chargers.png', '/images/cat_power_banks.png']);
 
         // Earphones
-        Product::create([
+        $p3 = Product::create([
             'name' => 'AMH TWS Earbuds Pro',
             'slug' => 'amh-tws-earbuds-pro',
             'description' => 'Premium true wireless stereo earbuds with active noise cancellation.',
@@ -109,9 +123,10 @@ class ProductSeeder extends Seeder
             'rating' => 4.9,
             'rating_count' => 210,
         ]);
+        $seedGallery($p3, ['/images/category_airpods.png', '/images/category_headphones.png', '/images/product_airpods_case.png']);
 
         // Power Banks
-        Product::create([
+        $p4 = Product::create([
             'name' => '10000mAh Power Bank',
             'slug' => '10000mah-power-bank',
             'description' => 'Sleek high-density portable backup battery with fast charging ports.',
@@ -123,6 +138,7 @@ class ProductSeeder extends Seeder
             'rating' => 4.7,
             'rating_count' => 84,
         ]);
+        $seedGallery($p4, ['/images/cat_chargers.png', '/images/cat_cables.png']);
 
         // Phone Cases
         $caseProduct = Product::create([
@@ -138,9 +154,10 @@ class ProductSeeder extends Seeder
             'rating_count' => 320,
         ]);
         $caseProduct->filterValues()->sync([$blackVal->id, $blueVal->id]);
+        $seedGallery($caseProduct, ['/images/cat_screen_protectors.png', '/images/category_iphones.png', '/images/product_airpods_case.png']);
 
         // Screen Protectors
-        Product::create([
+        $p6 = Product::create([
             'name' => 'Tempered Glass Guard',
             'slug' => 'tempered-glass-guard',
             'description' => 'High clarity screen guard protector with 9H hardness level.',
@@ -152,9 +169,10 @@ class ProductSeeder extends Seeder
             'rating' => 4.8,
             'rating_count' => 540,
         ]);
+        $seedGallery($p6, ['/images/product_iphone_case.png', '/images/category_iphones.png']);
 
         // Car Accessories
-        Product::create([
+        $p7 = Product::create([
             'name' => 'Car Charger (Dual PD)',
             'slug' => 'car-charger-dual-pd',
             'description' => 'Miniature high speed car charging adapter with dual USB-C output.',
@@ -166,9 +184,10 @@ class ProductSeeder extends Seeder
             'rating' => 4.6,
             'rating_count' => 58,
         ]);
+        $seedGallery($p7, ['/images/cat_chargers.png', '/images/cat_cables.png', '/images/hero_accessories.png']);
 
         // Smart Watches
-        Product::create([
+        $p8 = Product::create([
             'name' => 'AMH Sport Smartwatch',
             'slug' => 'amh-sport-smartwatch',
             'description' => 'Stylish sports smart watch tracking heart rate, steps, and sleep.',
@@ -180,5 +199,6 @@ class ProductSeeder extends Seeder
             'rating' => 4.9,
             'rating_count' => 180,
         ]);
+        $seedGallery($p8, ['/images/category_watch.png', '/images/hero_accessories.png', '/images/cat_power_banks.png']);
     }
 }

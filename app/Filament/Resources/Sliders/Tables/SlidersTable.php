@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\Products\Tables;
+namespace App\Filament\Resources\Sliders\Tables;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -10,38 +10,23 @@ use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
-class ProductsTable
+class SlidersTable
 {
     public static function configure(Table $table): Table
     {
         return $table
             ->columns([
-                TextColumn::make('name')
-                    ->searchable(),
-                TextColumn::make('slug')
-                    ->searchable(),
-                TextColumn::make('price')
-                    ->money('inr')
-                    ->sortable(),
                 ImageColumn::make('image_path'),
-                TextColumn::make('category.name')
+                TextColumn::make('title')
+                    ->searchable(),
+                TextColumn::make('subtitle')
                     ->searchable()
-                    ->sortable(),
-                TextColumn::make('brand.name')
-                    ->label('Brand')
-                    ->searchable()
-                    ->sortable(),
-                TextColumn::make('stock')
+                    ->limit(50),
+                IconColumn::make('is_active')
+                    ->boolean(),
+                TextColumn::make('display_order')
                     ->numeric()
                     ->sortable(),
-                IconColumn::make('is_featured')
-                    ->boolean(),
-                IconColumn::make('is_top_deal')
-                    ->label('Top Deal')
-                    ->boolean(),
-                IconColumn::make('is_bestseller')
-                    ->label('Bestseller')
-                    ->boolean(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

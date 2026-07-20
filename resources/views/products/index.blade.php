@@ -1,10 +1,15 @@
 @extends('layouts.app')
 
-@section('title', 'Apna Mobile Hub - Elevate Your Mobile Experience')
+@section('title', 'Apna Mobile Hub - Wholesale Mobile Accessories | Chargers, Cables, Cases | Jamshedpur')
+
+@section('meta_description', 'Buy wholesale mobile accessories at factory-direct prices from Apna Mobile Hub, Jamshedpur. Premium GaN chargers, USB-C cables, phone cases, earphones, power banks & smart watches. GST billing, pan India delivery & bulk pricing.')
+@section('meta_keywords', 'wholesale mobile accessories, B2B mobile accessories India, bulk phone cases, GaN chargers wholesale, USB cables bulk, TWS earbuds wholesale, power banks bulk, smart watches wholesale, Jamshedpur mobile accessories, Sakchi market, Apna Mobile Hub')
+@section('og_title', 'Apna Mobile Hub - Wholesale Mobile Accessories For Businesses')
+@section('og_description', 'India\'s trusted B2B wholesale partner for premium mobile cases, GaN fast chargers, cables & accessories at factory-direct prices. GST Billing | Pan India Delivery | Bulk Pricing.')
 
 @section('content')
 
-@if(request('search') || request('category'))
+@if(request('search') || request('category') || request('brand'))
     <!-- Search / Filter Results Grid -->
     <div class="container search-results-container">
         <h2 class="search-results-title">
@@ -12,12 +17,14 @@
                 Search Results for "{{ request('search') }}"
             @elseif(request('category'))
                 Category: {{ $currentCategory ? $currentCategory->name : request('category') }}
+            @elseif(request('brand'))
+                Brand: {{ $currentBrand ? $currentBrand->name : request('brand') }}
             @endif
         </h2>
         
         <div class="results-toolbar">
             <a href="{{ route('products.index') }}" class="back-to-home-btn">
-                <i data-lucide="arrow-left"></i> Back to Homepage
+                <i class="fa-solid fa-arrow-left"></i> Back to Homepage
             </a>
             
             <div class="category-filter-pills">
@@ -92,15 +99,24 @@
                     <div class="results-grid-rz">
                         @foreach($products as $product)
                             <div class="product-card-rz">
-                                <div class="product-card-img-wrapper">
+                                @php $cardImages = $product->getAllImageUrls(); @endphp
+                                <div class="product-card-img-wrapper" style="position: relative;" x-data="{ activeImg: 0, images: {{ json_encode($cardImages) }} }">
                                     <a href="{{ route('products.show', $product->slug) }}">
-                                        <img src="{{ $product->getImageUrl() }}" alt="{{ $product->name }}">
+                                        <img :src="images[activeImg]" alt="{{ $product->name }}" class="card-img-primary" style="width: 100%; height: 100%; object-fit: contain;">
                                     </a>
+                                    @if(count($cardImages) > 1)
+                                        <button @click.prevent="activeImg = activeImg === 0 ? images.length - 1 : activeImg - 1" style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.1); color: var(--text-primary); transition: all 0.2s;" onmouseover="this.style.backgroundColor='var(--accent-orange)'; this.style.color='#fff'" onmouseout="this.style.backgroundColor='rgba(255,255,255,0.9)'; this.style.color='var(--text-primary)'">
+                                            <i class="fa-solid fa-chevron-left" style="font-size: 11px;"></i>
+                                        </button>
+                                        <button @click.prevent="activeImg = activeImg === images.length - 1 ? 0 : activeImg + 1" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.1); color: var(--text-primary); transition: all 0.2s;" onmouseover="this.style.backgroundColor='var(--accent-orange)'; this.style.color='#fff'" onmouseout="this.style.backgroundColor='rgba(255,255,255,0.9)'; this.style.color='var(--text-primary)'">
+                                            <i class="fa-solid fa-chevron-right" style="font-size: 11px;"></i>
+                                        </button>
+                                    @endif
                                 </div>
                                 <div class="product-card-info">
                                     <div class="product-card-title-row">
                                         <h3><a href="{{ route('products.show', $product->slug) }}">{{ $product->name }}</a></h3>
-                                        <span class="rating"><i data-lucide="star" class="star-icon"></i> {{ number_format($product->rating, 1) }}</span>
+                                        <span class="rating"><i class="fa-solid fa-circle" class="star-icon"></i> {{ number_format($product->rating, 1) }}</span>
                                     </div>
                                     <p class="product-card-desc">{{ $product->description }}</p>
                                     <div class="product-card-footer-rz" style="display: flex; flex-direction: column; gap: 10px; align-items: stretch; margin-top: auto; padding-top: 12px; border-top: 1px dashed var(--border-color);">
@@ -114,7 +130,7 @@
                                                 <button type="submit" class="btn-orange-sm" style="width: 100%; height: 36px; display: inline-flex; align-items: center; justify-content: center; text-align: center; white-space: nowrap; padding: 0 10px; font-size: 11px; box-sizing: border-box; border-radius: 20px;">Add To Cart</button>
                                             </form>
                                             <a href="{{ route('cart.inquireSingle', $product->id) }}" class="btn-wa-sm" target="_blank" style="flex: 1; height: 36px; display: inline-flex; align-items: center; justify-content: center; text-align: center; white-space: nowrap; padding: 0 10px; font-size: 11px; box-sizing: border-box; border-radius: 20px; gap: 4px;">
-                                                <i data-lucide="message-circle" style="width: 12px; height: 12px;"></i> WhatsApp
+                                                <i class="fa-solid fa-message" style="width: 12px; height: 12px;"></i> WhatsApp
                                             </a>
                                         </div>
                                     </div>
@@ -128,7 +144,7 @@
                     </div>
                 @else
                     <div class="empty-state-rz">
-                        <i data-lucide="search-x" class="empty-icon"></i>
+                        <i class="fa-solid fa-circle" class="empty-icon"></i>
                         <h3>No Products Found</h3>
                         <p>We couldn't find any products matching your query.</p>
                         <a href="{{ route('products.index') }}" class="btn-orange">Browse All Products</a>
@@ -146,108 +162,69 @@
         <div class="hero-bg-layer-5-grain"></div>
         
         <div class="hero-premium-container">
-            <div class="hero-grid-wrapper">
-                <!-- Left Content Column -->
-                <div class="hero-left-content">
-                    <!-- Trust Badge -->
-                    <div class="hero-trust-badge-premium entrance-fade-up" style="animation-delay: 150ms;">
-                        <div class="avatar-stack-premium">
-                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=60&q=80" alt="Retailer Partner">
-                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&q=80" alt="Retailer Partner">
-                            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=60&q=80" alt="Retailer Partner">
+            @if(isset($sliders) && $sliders->count() > 0)
+                <div class="hero-carousel js-hero-carousel">
+                    @foreach($sliders as $index => $slider)
+                        <div class="hero-grid-wrapper hero-slide {{ $index === 0 ? 'active' : '' }}" data-slide="{{ $index }}">
+                            <!-- Left Content Column -->
+                            <div class="hero-left-content">
+                                
+
+                                <!-- Headline -->
+                                <h1 class="hero-title-premium js-parallax-heading">
+                                    <span class="text-reveal-container">
+                                        <span class="text-reveal-item" style="animation-delay: 300ms;">{!! str_replace('For Businesses', '<span class="blue-grad-text">For Businesses</span>', $slider->title) !!}</span>
+                                    </span>
+                                </h1>
+
+                                <!-- Description -->
+                                <p class="hero-para-premium entrance-fade-up" style="animation-delay: 600ms;">
+                                    {{ $slider->subtitle }}
+                                </p>
+
+                                <!-- Actions -->
+                                <div class="hero-btn-container-premium entrance-fade-up" style="animation-delay: 750ms;">
+                                    @if($slider->button_text && $slider->button_link)
+                                        <a href="{{ $slider->button_link }}" class="btn-premium-primary">
+                                            {{ $slider->button_text }} <i class="fa-solid fa-arrow-right" style="width: 16px; height: 16px;"></i>
+                                        </a>
+                                    @endif
+                                    <a href="{{ route('contact') }}" class="btn-premium-secondary">
+                                        Bulk Enquiry <i class="fa-solid fa-arrow-right" style="width: 16px; height: 16px;"></i>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Right Product Collage Column -->
+                            <div class="hero-right-composition entrance-scale-up" style="animation-delay: 950ms;">
+                                <div class="pedestal-3d"></div>
+                                <div class="neon-ring"></div>
+                                
+                                <div class="product-group-float js-parallax-products">
+                                    <img src="{{ $slider->getImageUrl() }}" alt="{{ $slider->title }}" class="hero-dynamic-image">
+                                </div>
+                            </div>
                         </div>
-                        <div class="trust-info-text">
-                            <span style="color: #fbbf24; font-size: 13px;">★★★★★ <span style="color: #0F172A; margin-left: 4px; font-weight: 800;">4.9/5</span></span>
-                            <span style="color: #64748B; font-size: 11px; font-weight: 600; margin-top: 1px;">Trusted by 2,000+ Retailers</span>
-                        </div>
-                    </div>
-
-                    <!-- Headline -->
-                    <h1 class="hero-title-premium js-parallax-heading">
-                        <span class="text-reveal-container">
-                            <span class="text-reveal-item" style="animation-delay: 300ms;">Wholesale Mobile</span>
-                        </span>
-                        <span class="text-reveal-container">
-                            <span class="text-reveal-item" style="animation-delay: 450ms;">Accessories <span class="blue-grad-text">For Businesses</span></span>
-                        </span>
-                    </h1>
-
-                    <!-- Description -->
-                    <p class="hero-para-premium entrance-fade-up" style="animation-delay: 600ms;">
-                        India's trusted B2B partner for premium cases, GaN fast chargers, and durable cables at certified factory-direct prices.
-                    </p>
-
-                    <!-- Actions -->
-                    <div class="hero-btn-container-premium entrance-fade-up" style="animation-delay: 750ms;">
-                        <a href="#deals" class="btn-premium-primary">
-                            Shop Now <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
-                        </a>
-                        <a href="{{ route('contact') }}" class="btn-premium-secondary">
-                            Bulk Enquiry <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
-                        </a>
-                    </div>
-
-                 
+                    @endforeach
                 </div>
-
-                <!-- Right Product Collage Column -->
-                <div class="hero-right-composition entrance-scale-up" style="animation-delay: 950ms;">
-                    <div class="pedestal-3d"></div>
-                    <div class="neon-ring"></div>
-                    
-                    <div class="product-group-float js-parallax-products">
-                        <!-- Top Right USB-C Cable -->
-                        <img src="/images/cat_cables.png" 
-                             alt="USB-C Cable" 
-                             class="floating-product cable-top"
-                             loading="eager"
-                             fetchpriority="high"
-                             decoding="async"
-                             width="130"
-                             height="130">
-
-                        <!-- Left Bottom Power Bank -->
-                        <img src="/images/cat_power_banks.png" 
-                             alt="Power Bank" 
-                             class="floating-product powerbank-left"
-                             loading="eager"
-                             fetchpriority="high"
-                             decoding="async"
-                             width="105"
-                             height="105">
-
-                        <!-- Bottom Right GaN Charger -->
-                        <img src="/images/cat_chargers.png" 
-                             alt="GaN Charger" 
-                             class="floating-product charger-right"
-                             loading="eager"
-                             fetchpriority="high"
-                             decoding="async"
-                             width="105"
-                             height="105">
-
-                        <!-- Front Bottom AirPods -->
-                        <img src="/images/category_airpods.png" 
-                             alt="AirPods" 
-                             class="floating-product airpods-front"
-                             loading="eager"
-                             fetchpriority="high"
-                             decoding="async"
-                             width="100"
-                             height="100">
-
-                        <!-- Center iPhone -->
-                        <img src="/images/category_iphones.png" 
-                             alt="iPhone" 
-                             class="floating-product iphone-center"
-                             loading="eager"
-                             fetchpriority="high"
-                             decoding="async"
-                             width="190"
-                             height="260">
+                
+                @if($sliders->count() > 1)
+                    <!-- Slider Navigation -->
+                    <div class="hero-slider-nav">
+                        @foreach($sliders as $index => $slider)
+                            <button class="hero-nav-dot {{ $index === 0 ? 'active' : '' }}" onclick="goToHeroSlide({{ $index }})" aria-label="Go to slide {{ $index + 1 }}"></button>
+                        @endforeach
+                    </div>
+                @endif
+            @else
+                <!-- Fallback if no sliders -->
+                <div class="hero-grid-wrapper">
+                    <div class="hero-left-content">
+                        <h1 class="hero-title-premium">Apna Mobile Hub</h1>
+                        <p class="hero-para-premium">Wholesale mobile accessories.</p>
                     </div>
                 </div>
-            </div>
+            @endif
         </div>
         <div class="hero-transition-fade"></div>
     </section>
@@ -285,7 +262,7 @@
             <div>
                 <div class="section-title-wrapper">
                     <h2 class="category-section-title">Shop by <span class="orange-text">Category</span></h2>
-                    <a href="{{ route('products.index', ['category' => 'phone-cases']) }}" class="view-all-cats">View all Categories <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i></a>
+                    <a href="{{ route('products.index', ['category' => 'phone-cases']) }}" class="view-all-cats">View all Categories <i class="fa-solid fa-arrow-right" style="width: 14px; height: 14px;"></i></a>
                 </div>
                 <div class="categories-grid">
                     @php
@@ -315,14 +292,14 @@
             <div class="reveal-slide-up promo-deals-card">
                 <div class="promo-card-glow"></div>
                 <div class="promo-card-content">
-                    <span class="promo-limited-badge"><i data-lucide="zap" style="width: 10px; height: 10px; fill: #fbbf24; stroke: none;"></i> Limited Time Offer</span>
+                    <span class="promo-limited-badge"><i class="fa-solid fa-circle" style="width: 10px; height: 10px; fill: #fbbf24; stroke: none;"></i> Limited Time Offer</span>
                     <h3 class="promo-title">Bulk Deals <br>For Businesses</h3>
                     <div class="promo-bullet-list">
-                        <span><i data-lucide="check-circle-2" style="width: 12px; height: 12px; color: var(--accent-orange);"></i> Best Prices</span>
-                        <span><i data-lucide="check-circle-2" style="width: 12px; height: 12px; color: var(--accent-orange);"></i> Fast Delivery</span>
-                        <span><i data-lucide="check-circle-2" style="width: 12px; height: 12px; color: var(--accent-orange);"></i> Trusted Quality</span>
+                        <span><i class="fa-solid fa-circle-check" style="width: 12px; height: 12px; color: var(--accent-orange);"></i> Best Prices</span>
+                        <span><i class="fa-solid fa-circle-check" style="width: 12px; height: 12px; color: var(--accent-orange);"></i> Fast Delivery</span>
+                        <span><i class="fa-solid fa-circle-check" style="width: 12px; height: 12px; color: var(--accent-orange);"></i> Trusted Quality</span>
                     </div>
-                    <a href="{{ route('products.index', ['category' => 'chargers']) }}" class="btn-explore-deals">Explore Deals <i data-lucide="arrow-right" style="width: 12px; height: 12px;"></i></a>
+                    <a href="{{ route('products.index', ['category' => 'chargers']) }}" class="btn-explore-deals">Explore Deals <i class="fa-solid fa-arrow-right" style="width: 12px; height: 12px;"></i></a>
                 </div>
                 
                 <div class="promo-boxes-graphic">
@@ -338,28 +315,32 @@
     </section>
 
     <!-- 3. Top Deals Section (Auto-Scrolling Slider) -->
+    @if(isset($topDeals) && $topDeals->count() > 0)
     <section class="deals-section-rz container" id="deals" style="padding: 40px 0 60px;">
         <div class="section-title-wrapper" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-            <h2 class="category-section-title" style="margin: 0;">Top Deals <span style="font-size: 20px;">🔥</span></h2>
+            <h2 class="category-section-title" style="margin: 0;">Top Deals</h2>
             <div style="display: flex; gap: 10px; align-items: center;">
-                <button id="deals-prev" class="slider-arrow-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #fff; border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition);"><i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i></button>
-                <button id="deals-next" class="slider-arrow-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #fff; border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition);"><i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i></button>
+                <button id="deals-prev" class="slider-arrow-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #fff; border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition);"><i class="fa-solid fa-chevron-left" style="width: 16px; height: 16px;"></i></button>
+                <button id="deals-next" class="slider-arrow-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #fff; border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition);"><i class="fa-solid fa-chevron-right" style="width: 16px; height: 16px;"></i></button>
             </div>
         </div>
         
         <div id="deals-slider-container" style="overflow-x: auto; scroll-behavior: smooth; display: flex; gap: 20px; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 10px;">
-            @foreach($products as $product)
+            @foreach($topDeals as $product)
                 <div class="product-card-rz deals-product-card" style="flex: 0 0 280px; width: 280px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; position: relative; transition: all 0.3s; box-shadow: var(--shadow-sm);" onmouseover="this.style.borderColor='var(--accent-orange)'; this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'">
-                    <div class="wishlist-badge-wrapper" style="position: absolute; right: 12px; top: 12px; z-index: 10;">
-                        <button class="wishlist-btn" style="border: none; background-color: var(--bg-surface); width: 28px; height: 28px; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.06); display: flex; align-items: center; justify-content: center; cursor: pointer; color: #94a3b8; transition: color 0.2s;" onmouseover="this.style.color='red'" onmouseout="this.style.color='#94a3b8'">
-                            <i data-lucide="heart" style="width: 14px; height: 14px;"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="product-card-img-wrapper" style="background-color: var(--bg-primary); border-radius: 12px; height: 220px; overflow: hidden; position: relative;">
+                    @php $sliderImages = $product->getAllImageUrls(); @endphp
+                    <div class="product-card-img-wrapper" style="background-color: var(--bg-primary); border-radius: 12px; height: 220px; overflow: hidden; position: relative;" x-data="{ activeImg: 0, images: {{ json_encode($sliderImages) }} }">
                         <a href="{{ route('products.show', $product->slug) }}" style="width: 100%; height: 100%; display: block;">
-                            <img src="{{ $product->getImageUrl() }}" alt="{{ $product->name }}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;">
+                            <img :src="images[activeImg]" alt="{{ $product->name }}" class="card-img-primary" style="width: 100%; height: 100%; object-fit: cover;">
                         </a>
+                        @if(count($sliderImages) > 1)
+                            <button @click.prevent="activeImg = activeImg === 0 ? images.length - 1 : activeImg - 1" style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.1); color: var(--text-primary); transition: all 0.2s;" onmouseover="this.style.backgroundColor='var(--accent-orange)'; this.style.color='#fff'" onmouseout="this.style.backgroundColor='rgba(255,255,255,0.9)'; this.style.color='var(--text-primary)'">
+                                <i class="fa-solid fa-chevron-left" style="font-size: 11px;"></i>
+                            </button>
+                            <button @click.prevent="activeImg = activeImg === images.length - 1 ? 0 : activeImg + 1" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.1); color: var(--text-primary); transition: all 0.2s;" onmouseover="this.style.backgroundColor='var(--accent-orange)'; this.style.color='#fff'" onmouseout="this.style.backgroundColor='rgba(255,255,255,0.9)'; this.style.color='var(--text-primary)'">
+                                <i class="fa-solid fa-chevron-right" style="font-size: 11px;"></i>
+                            </button>
+                        @endif
                     </div>
                     
                     <div class="product-card-info" style="margin-top: 14px; display: flex; flex-direction: column; gap: 6px; flex-grow: 1;">
@@ -379,52 +360,91 @@
             @endforeach
         </div>
     </section>
+    @endif
 
     <!-- 3.5 Top Brands Section (Auto-Scrolling Slider) -->
     <section class="brands-section-rz container" id="top-brands" style="padding: 0 0 60px;">
         <div class="section-title-wrapper" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-            <h2 class="category-section-title" style="margin: 0;">Top Brands <span style="font-size: 20px;">⭐</span></h2>
+            <h2 class="category-section-title" style="margin: 0;">Top Brands</h2>
             <div style="display: flex; gap: 10px; align-items: center;">
-                <button id="brands-prev" class="slider-arrow-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #fff; border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition);"><i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i></button>
-                <button id="brands-next" class="slider-arrow-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #fff; border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition);"><i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i></button>
+                <button id="brands-prev" class="slider-arrow-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #fff; border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition);"><i class="fa-solid fa-chevron-left" style="width: 16px; height: 16px;"></i></button>
+                <button id="brands-next" class="slider-arrow-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #fff; border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition);"><i class="fa-solid fa-chevron-right" style="width: 16px; height: 16px;"></i></button>
             </div>
         </div>
         
         <div id="brands-slider-container" style="overflow-x: auto; scroll-behavior: smooth; display: flex; gap: 20px; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 10px;">
             @php
-                $brandList = ['ANKER', 'boAt', 'PORTRONICS', 'UGREEN', 'spigen', 'ESR', 'SAMSUNG', 'realme', 'mi', 'OnePlus', 'Apple', 'Xiaomi'];
+                $dbBrands = \App\Models\Brand::where('is_active', true)->orderBy('sort_order', 'asc')->get();
             @endphp
-            @foreach($brandList as $bName)
-                <div class="brand-card-rz" style="flex: 0 0 200px; width: 200px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; display: flex; align-items: center; justify-content: center; height: 100px; transition: all 0.3s;" onmouseover="this.style.borderColor='var(--accent-orange)'; this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'">
-                    <span style="font-size: 16px; font-weight: 900; font-family: 'Montserrat', sans-serif; color: var(--text-primary); letter-spacing: -0.5px; text-transform: uppercase;">{{ $bName }}</span>
-                </div>
-            @endforeach
+            @if($dbBrands->count() > 0)
+                @foreach($dbBrands as $brand)
+                    <a href="{{ route('products.index', ['brand' => $brand->slug]) }}" class="brand-card-rz brand-card" style="flex: 0 0 175px; width: 175px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; height: 135px; transition: all 0.3s; text-decoration: none;" onmouseover="this.style.borderColor='var(--accent-orange)'; this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'">
+                        @if($brand->logo)
+                            @php
+                                $logoSrc = \Illuminate\Support\Str::startsWith($brand->logo, ['http://', 'https://']) 
+                                    ? $brand->logo 
+                                    : (\Illuminate\Support\Str::startsWith($brand->logo, 'storage/') || \Illuminate\Support\Str::startsWith($brand->logo, 'brands/') 
+                                        ? Storage::url($brand->logo) 
+                                        : asset($brand->logo));
+                            @endphp
+                            <img src="{{ $logoSrc }}" alt="{{ $brand->name }}" style="height: 60px; width: auto; max-width: 140px; object-fit: contain;">
+                        @endif
+                        <span style="font-size: 13px; font-weight: 700; font-family: 'Montserrat', sans-serif; color: var(--text-primary); letter-spacing: -0.2px; text-transform: uppercase;">{{ $brand->name }}</span>
+                    </a>
+                @endforeach
+            @else
+                @php
+                    $brandList = [
+                        ['name' => 'Apple', 'slug' => 'apple', 'domain' => 'apple.com'],
+                        ['name' => 'SAMSUNG', 'slug' => 'samsung', 'domain' => 'samsung.com'],
+                        ['name' => 'OnePlus', 'slug' => 'oneplus', 'domain' => 'oneplus.com'],
+                        ['name' => 'Xiaomi', 'slug' => 'xiaomi', 'domain' => 'mi.com'],
+                        ['name' => 'realme', 'slug' => 'realme', 'domain' => 'realme.com'],
+                        ['name' => 'boAt', 'slug' => 'boat', 'domain' => 'boat-lifestyle.com'],
+                        ['name' => 'ANKER', 'slug' => 'anker', 'domain' => 'anker.com'],
+                        ['name' => 'PORTRONICS', 'slug' => 'portronics', 'domain' => 'portronics.com'],
+                        ['name' => 'UGREEN', 'slug' => 'ugreen', 'domain' => 'ugreen.com'],
+                        ['name' => 'Spigen', 'slug' => 'spigen', 'domain' => 'spigen.com'],
+                        ['name' => 'ESR', 'slug' => 'esr', 'domain' => 'esrgear.com']
+                    ];
+                @endphp
+                @foreach($brandList as $brand)
+                    <a href="{{ route('products.index', ['brand' => $brand['slug']]) }}" class="brand-card-rz brand-card" style="flex: 0 0 175px; width: 175px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; height: 135px; transition: all 0.3s; text-decoration: none;" onmouseover="this.style.borderColor='var(--accent-orange)'; this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'">
+                        <img src="https://logo.clearbit.com/{{ $brand['domain'] }}" alt="{{ $brand['name'] }}" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($brand['name']) }}&background=fff&color=000&format=svg'" style="height: 52px; width: auto; max-width: 130px; object-fit: contain;">
+                        <span style="font-size: 13px; font-weight: 700; font-family: 'Montserrat', sans-serif; color: var(--text-primary); letter-spacing: -0.2px; text-transform: uppercase;">{{ $brand['name'] }}</span>
+                    </a>
+                @endforeach
+            @endif
         </div>
     </section>
 
     <!-- 3.7 Best Sellers Section (Auto-Scrolling Slider) -->
+    @if(isset($bestSellers) && $bestSellers->count() > 0)
     <section class="deals-section-rz container" id="best-sellers" style="padding: 0 0 60px;">
         <div class="section-title-wrapper" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-            <h2 class="category-section-title" style="margin: 0;">Best Sellers <span style="font-size: 20px;">🏆</span></h2>
+            <h2 class="category-section-title" style="margin: 0;">Best Sellers</h2>
             <div style="display: flex; gap: 10px; align-items: center;">
-                <button id="bestsellers-prev" class="slider-arrow-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #fff; border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition);"><i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i></button>
-                <button id="bestsellers-next" class="slider-arrow-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #fff; border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition);"><i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i></button>
+                <button id="bestsellers-prev" class="slider-arrow-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #fff; border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition);"><i class="fa-solid fa-chevron-left" style="width: 16px; height: 16px;"></i></button>
+                <button id="bestsellers-next" class="slider-arrow-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #fff; border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition);"><i class="fa-solid fa-chevron-right" style="width: 16px; height: 16px;"></i></button>
             </div>
         </div>
         
         <div id="bestsellers-slider-container" style="overflow-x: auto; scroll-behavior: smooth; display: flex; gap: 20px; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 10px;">
-            @foreach($products->shuffle() as $product)
+            @foreach($bestSellers as $product)
                 <div class="product-card-rz deals-product-card" style="flex: 0 0 280px; width: 280px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; position: relative; transition: all 0.3s; box-shadow: var(--shadow-sm);" onmouseover="this.style.borderColor='var(--accent-orange)'; this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'">
-                    <div class="wishlist-badge-wrapper" style="position: absolute; right: 12px; top: 12px; z-index: 10;">
-                        <button class="wishlist-btn" style="border: none; background-color: var(--bg-surface); width: 28px; height: 28px; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.06); display: flex; align-items: center; justify-content: center; cursor: pointer; color: #94a3b8; transition: color 0.2s;" onmouseover="this.style.color='red'" onmouseout="this.style.color='#94a3b8'">
-                            <i data-lucide="heart" style="width: 14px; height: 14px;"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="product-card-img-wrapper" style="background-color: var(--bg-primary); border-radius: 12px; height: 220px; overflow: hidden; position: relative;">
+                    @php $sliderImages = $product->getAllImageUrls(); @endphp
+                    <div class="product-card-img-wrapper" style="background-color: var(--bg-primary); border-radius: 12px; height: 220px; overflow: hidden; position: relative;" x-data="{ activeImg: 0, images: {{ json_encode($sliderImages) }} }">
                         <a href="{{ route('products.show', $product->slug) }}" style="width: 100%; height: 100%; display: block;">
-                            <img src="{{ $product->getImageUrl() }}" alt="{{ $product->name }}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;">
+                            <img :src="images[activeImg]" alt="{{ $product->name }}" class="card-img-primary" style="width: 100%; height: 100%; object-fit: cover;">
                         </a>
+                        @if(count($sliderImages) > 1)
+                            <button @click.prevent="activeImg = activeImg === 0 ? images.length - 1 : activeImg - 1" style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.1); color: var(--text-primary); transition: all 0.2s;" onmouseover="this.style.backgroundColor='var(--accent-orange)'; this.style.color='#fff'" onmouseout="this.style.backgroundColor='rgba(255,255,255,0.9)'; this.style.color='var(--text-primary)'">
+                                <i class="fa-solid fa-chevron-left" style="font-size: 11px;"></i>
+                            </button>
+                            <button @click.prevent="activeImg = activeImg === images.length - 1 ? 0 : activeImg + 1" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.1); color: var(--text-primary); transition: all 0.2s;" onmouseover="this.style.backgroundColor='var(--accent-orange)'; this.style.color='#fff'" onmouseout="this.style.backgroundColor='rgba(255,255,255,0.9)'; this.style.color='var(--text-primary)'">
+                                <i class="fa-solid fa-chevron-right" style="font-size: 11px;"></i>
+                            </button>
+                        @endif
                     </div>
                     
                     <div class="product-card-info" style="margin-top: 14px; display: flex; flex-direction: column; gap: 6px; flex-grow: 1;">
@@ -444,7 +464,7 @@
             @endforeach
         </div>
     </section>
-
+@endif
     <!-- 3.9 Dual Promotional Banners Section -->
     <section class="container" style="padding: 0 0 60px;">
         <div class="promo-banners-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
@@ -456,7 +476,7 @@
                     <h3 style="font-size: 28px; font-weight: 900; font-family: 'Montserrat', sans-serif; line-height: 1.2; margin: 10px 0 15px; text-transform: uppercase;">Premium Chargers <br><span style="color: var(--accent-orange);">Up to 40% Off</span></h3>
                     <p style="font-size: 13px; color: #94a3b8; margin: 0 0 20px; max-width: 320px;">Stock up your store with high demand GaN fast chargers and adapters.</p>
                 </div>
-                <a href="{{ route('products.index', ['category' => 'chargers']) }}" class="btn-orange" style="width: fit-content; border-radius: 20px; padding: 10px 24px; font-size: 12px; font-weight: 800; text-decoration: none;">Order Bulk Now <i data-lucide="arrow-right" style="width: 14px; height: 14px; margin-left: 4px;"></i></a>
+                <a href="{{ route('products.index', ['category' => 'chargers']) }}" class="btn-orange" style="width: fit-content; border-radius: 20px; padding: 10px 24px; font-size: 12px; font-weight: 800; text-decoration: none;">Order Bulk Now <i class="fa-solid fa-arrow-right" style="width: 14px; height: 14px; margin-left: 4px;"></i></a>
             </div>
 
             <!-- Right Banner -->
@@ -467,34 +487,37 @@
                     <h3 style="font-size: 28px; font-weight: 900; font-family: 'Montserrat', sans-serif; line-height: 1.2; margin: 10px 0 15px; text-transform: uppercase;">Unbreakable Cables <br><span style="color: #fbbf24;">Buy 10 Get 2 Free</span></h3>
                     <p style="font-size: 13px; color: #cbd5e1; margin: 0 0 20px; max-width: 320px;">Top-rated braided Type-C & Lightning cables with lifetime durability.</p>
                 </div>
-                <a href="{{ route('products.index', ['category' => 'cables']) }}" class="btn-orange" style="background-color: #ffffff; color: #005eff; width: fit-content; border-radius: 20px; padding: 10px 24px; font-size: 12px; font-weight: 800; text-decoration: none;" onmouseover="this.style.backgroundColor='var(--accent-orange)'; this.style.color='#ffffff'" onmouseout="this.style.backgroundColor='#ffffff'; this.style.color='#005eff'">Claim Offer <i data-lucide="arrow-right" style="width: 14px; height: 14px; margin-left: 4px;"></i></a>
+                <a href="{{ route('products.index', ['category' => 'cables']) }}" class="btn-orange" style="background-color: #ffffff; color: #005eff; width: fit-content; border-radius: 20px; padding: 10px 24px; font-size: 12px; font-weight: 800; text-decoration: none;" onmouseover="this.style.backgroundColor='var(--accent-orange)'; this.style.color='#ffffff'" onmouseout="this.style.backgroundColor='#ffffff'; this.style.color='#005eff'">Claim Offer <i class="fa-solid fa-arrow-right" style="width: 14px; height: 14px; margin-left: 4px;"></i></a>
             </div>
         </div>
     </section>
 
-    <!-- 3.11 Most Demanded Products Section (Auto-Scrolling Slider) -->
+    <!-- 3.11 1. New Arrivals Section (Auto-Scrolling Slider) -->
     <section class="deals-section-rz container" id="most-demanded" style="padding: 0 0 60px;">
         <div class="section-title-wrapper" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-            <h2 class="category-section-title" style="margin: 0;">Most Demanded Products <span style="font-size: 20px;">🔥</span></h2>
+            <h2 class="category-section-title" style="margin: 0;">New Arrivals<span style="font-size: 20px;"></span></h2>
             <div style="display: flex; gap: 10px; align-items: center;">
-                <button id="demanded-prev" class="slider-arrow-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #fff; border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition);"><i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i></button>
-                <button id="demanded-next" class="slider-arrow-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #fff; border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition);"><i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i></button>
+                <button id="demanded-prev" class="slider-arrow-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #fff; border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition);"><i class="fa-solid fa-chevron-left" style="width: 16px; height: 16px;"></i></button>
+                <button id="demanded-next" class="slider-arrow-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #fff; border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition);"><i class="fa-solid fa-chevron-right" style="width: 16px; height: 16px;"></i></button>
             </div>
         </div>
         
         <div id="demanded-slider-container" style="overflow-x: auto; scroll-behavior: smooth; display: flex; gap: 20px; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 10px;">
-            @foreach($products->shuffle() as $product)
+            @foreach(\App\Models\Product::latest()->take(10)->get() as $product)
                 <div class="product-card-rz deals-product-card" style="flex: 0 0 280px; width: 280px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; position: relative; transition: all 0.3s; box-shadow: var(--shadow-sm);" onmouseover="this.style.borderColor='var(--accent-orange)'; this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'">
-                    <div class="wishlist-badge-wrapper" style="position: absolute; right: 12px; top: 12px; z-index: 10;">
-                        <button class="wishlist-btn" style="border: none; background-color: var(--bg-surface); width: 28px; height: 28px; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.06); display: flex; align-items: center; justify-content: center; cursor: pointer; color: #94a3b8; transition: color 0.2s;" onmouseover="this.style.color='red'" onmouseout="this.style.color='#94a3b8'">
-                            <i data-lucide="heart" style="width: 14px; height: 14px;"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="product-card-img-wrapper" style="background-color: var(--bg-primary); border-radius: 12px; height: 220px; overflow: hidden; position: relative;">
+                    @php $sliderImages = $product->getAllImageUrls(); @endphp
+                    <div class="product-card-img-wrapper" style="background-color: var(--bg-primary); border-radius: 12px; height: 220px; overflow: hidden; position: relative;" x-data="{ activeImg: 0, images: {{ json_encode($sliderImages) }} }">
                         <a href="{{ route('products.show', $product->slug) }}" style="width: 100%; height: 100%; display: block;">
-                            <img src="{{ $product->getImageUrl() }}" alt="{{ $product->name }}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;">
+                            <img :src="images[activeImg]" alt="{{ $product->name }}" class="card-img-primary" style="width: 100%; height: 100%; object-fit: cover;">
                         </a>
+                        @if(count($sliderImages) > 1)
+                            <button @click.prevent="activeImg = activeImg === 0 ? images.length - 1 : activeImg - 1" style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.1); color: var(--text-primary); transition: all 0.2s;" onmouseover="this.style.backgroundColor='var(--accent-orange)'; this.style.color='#fff'" onmouseout="this.style.backgroundColor='rgba(255,255,255,0.9)'; this.style.color='var(--text-primary)'">
+                                <i class="fa-solid fa-chevron-left" style="font-size: 11px;"></i>
+                            </button>
+                            <button @click.prevent="activeImg = activeImg === images.length - 1 ? 0 : activeImg + 1" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.1); color: var(--text-primary); transition: all 0.2s;" onmouseover="this.style.backgroundColor='var(--accent-orange)'; this.style.color='#fff'" onmouseout="this.style.backgroundColor='rgba(255,255,255,0.9)'; this.style.color='var(--text-primary)'">
+                                <i class="fa-solid fa-chevron-right" style="font-size: 11px;"></i>
+                            </button>
+                        @endif
                     </div>
                     
                     <div class="product-card-info" style="margin-top: 14px; display: flex; flex-direction: column; gap: 6px; flex-grow: 1;">
@@ -519,28 +542,28 @@
     <div class="feature-icons-strip">
         <div class="container feature-strip-container">
             <div class="feature-strip-item">
-                <i data-lucide="shield-check" style="width: 20px; height: 20px; color: var(--accent-orange);"></i>
+                <i class="fa-solid fa-shield-halved" style="width: 20px; height: 20px; color: var(--accent-orange);"></i>
                 <div class="feature-strip-text">
                     <span class="title">Genuine Products</span>
                     <span class="desc">100% original & branded</span>
                 </div>
             </div>
             <div class="feature-strip-item">
-                <i data-lucide="lock" style="width: 20px; height: 20px; color: var(--accent-orange);"></i>
+                <i class="fa-solid fa-lock" style="width: 20px; height: 20px; color: var(--accent-orange);"></i>
                 <div class="feature-strip-text">
                     <span class="title">Secure Payments</span>
                     <span class="desc">Multiple safe payment options</span>
                 </div>
             </div>
             <div class="feature-strip-item">
-                <i data-lucide="refresh-cw" style="width: 20px; height: 20px; color: var(--accent-orange);"></i>
+                <i class="fa-solid fa-arrow-rotate-right" style="width: 20px; height: 20px; color: var(--accent-orange);"></i>
                 <div class="feature-strip-text">
                     <span class="title">Easy Returns</span>
                     <span class="desc">7 days return policy</span>
                 </div>
             </div>
             <div class="feature-strip-item">
-                <i data-lucide="headphones" style="width: 20px; height: 20px; color: var(--accent-orange);"></i>
+                <i class="fa-solid fa-headphones" style="width: 20px; height: 20px; color: var(--accent-orange);"></i>
                 <div class="feature-strip-text">
                     <span class="title">Dedicated Support</span>
                     <span class="desc">We're here to help you</span>
@@ -554,7 +577,7 @@
         <div class="reveal-slide-up newsletter-row">
             <div class="newsletter-left-col">
                 <div class="newsletter-icon-box">
-                    <i data-lucide="mail" style="width: 22px; height: 22px;"></i>
+                    <i class="fa-solid fa-envelope" style="width: 22px; height: 22px;"></i>
                 </div>
                 <div class="newsletter-text-box">
                     <h3>Stay Updated</h3>
@@ -750,6 +773,33 @@
                 });
             }, observerOptions);
             metrics.forEach(metric => metricsObserver.observe(metric));
+        }
+        
+        // --- Hero Slider Logic ---
+        let currentHeroSlide = 0;
+        const heroSlides = document.querySelectorAll('.hero-slide');
+        const heroDots = document.querySelectorAll('.hero-nav-dot');
+        const totalHeroSlides = heroSlides.length;
+        
+        window.goToHeroSlide = function(index) {
+            if(totalHeroSlides === 0) return;
+            
+            // Remove active classes
+            heroSlides.forEach(slide => slide.classList.remove('active'));
+            heroDots.forEach(dot => dot.classList.remove('active'));
+            
+            // Add active classes
+            currentHeroSlide = index;
+            if(heroSlides[currentHeroSlide]) heroSlides[currentHeroSlide].classList.add('active');
+            if(heroDots[currentHeroSlide]) heroDots[currentHeroSlide].classList.add('active');
+        };
+
+        if(totalHeroSlides > 1) {
+            // Auto rotate every 5 seconds
+            setInterval(() => {
+                let nextSlide = (currentHeroSlide + 1) % totalHeroSlides;
+                goToHeroSlide(nextSlide);
+            }, 5000);
         }
     });
 </script>

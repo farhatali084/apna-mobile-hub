@@ -45,6 +45,11 @@ class CategoryResource extends Resource
                         TextInput::make('slug')
                             ->required()
                             ->unique(Category::class, 'slug', ignoreRecord: true),
+                        \Filament\Forms\Components\Select::make('parent_id')
+                            ->label('Parent Category')
+                            ->relationship('parent', 'name')
+                            ->searchable()
+                            ->preload(),
                     ]),
 
                 Section::make('Associated Filter Values')
@@ -59,7 +64,7 @@ class CategoryResource extends Resource
                                 ->default(function () use ($record, $group) {
                                     if (!$record) return [];
                                     return $record->filterValues()
-                                        ->where('filter_group_id', $group->id)
+                                        ->where('filter_values.filter_group_id', $group->id)
                                         ->pluck('filter_values.id')
                                         ->toArray();
                                 });
@@ -75,6 +80,10 @@ class CategoryResource extends Resource
                 TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('parent.name')
+                    ->label('Parent Category')
+                    ->sortable()
+                    ->searchable(),
                 TextColumn::make('slug')
                     ->searchable()
                     ->sortable(),

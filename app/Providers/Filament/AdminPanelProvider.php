@@ -106,6 +106,10 @@ class AdminPanelProvider extends PanelProvider
                     ->url(fn () => \App\Filament\Resources\FilterGroupResource::getUrl())
                     ->icon('heroicon-o-funnel')
                     ->isActiveWhen(fn () => request()->routeIs('filament.admin.resources.filter-groups.*')),
+                NavigationItem::make('SEO Manager')
+                    ->url(fn () => \App\Filament\Resources\PageSeoResource::getUrl())
+                    ->icon('heroicon-o-magnifying-glass')
+                    ->isActiveWhen(fn () => request()->routeIs('filament.admin.resources.page-seos.*')),
             ])
             ->middleware([
                 EncryptCookies::class,

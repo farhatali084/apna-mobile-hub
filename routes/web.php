@@ -23,3 +23,50 @@ Route::post('/checkout-whatsapp', [CartController::class, 'inquireCart'])->name(
 Route::view('/about', 'about')->name('about');
 Route::view('/contact', 'contact')->name('contact');
 
+// Dynamic XML Sitemap
+Route::get('/sitemap.xml', function () {
+    $products = \App\Models\Product::select('slug', 'updated_at')->get();
+    $categories = \App\Models\Category::select('slug', 'updated_at')->get();
+
+    $content = '<?xml version="1.0" encoding="UTF-8"?>';
+    $content .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+
+    // Static pages
+    $staticPages = [
+        ['loc' => url('/'), 'priority' => '1.0', 'changefreq' => 'daily'],
+        ['loc' => url('/about'), 'priority' => '0.7', 'changefreq' => 'monthly'],
+        ['loc' => url('/contact'), 'priority' => '0.7', 'changefreq' => 'monthly'],
+    ];
+
+    foreach ($staticPages as $page) {
+        $content .= '<url>';
+        $content .= '<loc>' . $page['loc'] . '</loc>';
+        $content .= '<changefreq>' . $page['changefreq'] . '</changefreq>';
+        $content .= '<priority>' . $page['priority'] . '</priority>';
+        $content .= '</url>';
+    }
+
+    // Category pages
+    foreach ($categories as $category) {
+        $content .= '<url>';
+        $content .= '<loc>' . url('/?category=' . $category->slug) . '</loc>';
+        $content .= '<lastmod>' . $category->updated_at->toW3cString() . '</lastmod>';
+        $content .= '<changefreq>weekly</changefreq>';
+        $content .= '<priority>0.8</priority>';
+        $content .= '</url>';
+    }
+
+    // Product pages
+    foreach ($products as $product) {
+        $content .= '<url>';
+        $content .= '<loc>' . url('/product/' . $product->slug) . '</loc>';
+        $content .= '<lastmod>' . $product->updated_at->toW3cString() . '</lastmod>';
+        $content .= '<changefreq>weekly</changefreq>';
+        $content .= '<priority>0.9</priority>';
+        $content .= '</url>';
+    }
+
+    $content .= '</urlset>';
+
+    return response($content, 200, ['Content-Type' => 'application/xml']);
+})->name('sitemap');

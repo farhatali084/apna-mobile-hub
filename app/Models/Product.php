@@ -13,10 +13,19 @@ class Product extends Model
         'price',
         'image_path',
         'category_id',
+        'brand_id',
         'stock',
         'is_featured',
+        'is_top_deal',
+        'is_bestseller',
         'rating',
         'rating_count',
+    ];
+
+    protected $casts = [
+        'is_featured' => 'boolean',
+        'is_top_deal' => 'boolean',
+        'is_bestseller' => 'boolean',
     ];
 
     /**
@@ -38,11 +47,44 @@ class Product extends Model
     }
 
     /**
+     * Get gallery images for this product.
+     */
+    public function images()
+    {
+        return $this->hasMany(ProductImage::class)->orderBy('sort_order');
+    }
+
+    /**
+     * Get all image URLs (primary + gallery) for carousel rendering.
+     */
+    public function getAllImageUrls()
+    {
+        $urls = [$this->getImageUrl()];
+
+        foreach ($this->images as $img) {
+            $url = $img->getImageUrl();
+            if ($url && !in_array($url, $urls)) {
+                $urls[] = $url;
+            }
+        }
+
+        return $urls;
+    }
+
+    /**
      * Get the category that owns the product.
      */
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * Get the brand that owns the product.
+     */
+    public function brand()
+    {
+        return $this->belongsTo(Brand::class);
     }
 
     /**

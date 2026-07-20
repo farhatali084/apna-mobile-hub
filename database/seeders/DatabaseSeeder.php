@@ -202,6 +202,7 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             ProductSeeder::class,
+            SliderSeeder::class,
         ]);
 
         if (!app()->environment('production')) {

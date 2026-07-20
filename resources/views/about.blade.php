@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'About Us - Apna Mobile Hub')
+@section('title', 'About Us - Apna Mobile Hub | Trusted B2B Wholesale Mobile Accessories Partner')
+
+@section('meta_description', 'Learn about Apna Mobile Hub - Jamshedpur\'s trusted B2B wholesale mobile accessories store. 5000+ happy customers, 100% quality assured. Discover our story, values & commitment to premium protection gear.')
+@section('meta_keywords', 'about Apna Mobile Hub, mobile accessories store Jamshedpur, B2B wholesale accessories, trusted mobile accessories partner, Sakchi market Jamshedpur')
+@section('og_title', 'About Us - Apna Mobile Hub | Our Story & Mission')
+@section('og_description', 'Discover the passion behind Apna Mobile Hub and our commitment to bringing you the finest premium mobile accessories at wholesale prices.')
 
 @section('content')
 @php
@@ -76,7 +81,7 @@
             <!-- Pillar 1 -->
             <div class="reveal-diagonal-slide stagger-1 pillar-card-rz">
                 <div class="pillar-icon-box">
-                    <i data-lucide="shield-check"></i>
+                    <i class="fa-solid fa-shield-halved"></i>
                 </div>
                 <h4>Uncompromised Protection</h4>
                 <p>
@@ -87,7 +92,7 @@
             <!-- Pillar 2 -->
             <div class="reveal-diagonal-slide stagger-2 pillar-card-rz">
                 <div class="pillar-icon-box">
-                    <i data-lucide="zap"></i>
+                    <i class="fa-solid fa-circle"></i>
                 </div>
                 <h4>Speed & Efficiency</h4>
                 <p>
@@ -98,7 +103,7 @@
             <!-- Pillar 3 -->
             <div class="reveal-diagonal-slide stagger-3 pillar-card-rz">
                 <div class="pillar-icon-box">
-                    <i data-lucide="smile"></i>
+                    <i class="fa-solid fa-circle"></i>
                 </div>
                 <h4>Real Customer Support</h4>
                 <p>

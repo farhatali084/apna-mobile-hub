@@ -26,6 +26,7 @@ class ProductController extends Controller
 
         // 2. Category filter
         $currentCategory = null;
+        $currentBrand = null;
         $filterGroups = collect();
 
         if ($request->has('category') && $request->category != '') {
@@ -39,6 +40,14 @@ class ProductController extends Controller
                     }])
                     ->get()
                     ->filter(fn ($group) => $group->values->isNotEmpty());
+            }
+        }
+
+        // 2.1 Brand filter
+        if ($request->has('brand') && $request->brand != '') {
+            $currentBrand = \App\Models\Brand::where('slug', $request->brand)->first();
+            if ($currentBrand) {
+                $query->where('brand_id', $currentBrand->id);
             }
         }
 
@@ -68,15 +77,24 @@ class ProductController extends Controller
             $query->where('price', '<=', (float) $request->price_max);
         }
 
-        $products = $query->latest()->paginate(12)->withQueryString();
+        $products = $query->with('images')->latest()->paginate(12)->withQueryString();
         
+        // Fetch Top Deals products (is_top_deal = true)
+        $topDeals = Product::with('images')->where('is_top_deal', true)->latest()->get();
+
+        // Fetch Best Sellers products (is_bestseller = true)
+        $bestSellers = Product::with('images')->where('is_bestseller', true)->latest()->get();
+
         // Get all categories for the navigation pills
         $categories = Category::all();
 
         // Get active client reviews
         $reviews = \App\Models\Review::where('is_active', true)->orderBy('display_order')->get();
+
+        // Get active hero sliders
+        $sliders = \App\Models\Slider::where('is_active', true)->orderBy('display_order')->get();
  
-        return view('products.index', compact('products', 'categories', 'currentCategory', 'filterGroups', 'reviews'));
+        return view('products.index', compact('products', 'categories', 'currentCategory', 'currentBrand', 'filterGroups', 'reviews', 'sliders', 'topDeals', 'bestSellers'));
     }
 
     /**
@@ -84,7 +102,7 @@ class ProductController extends Controller
      */
     public function show($slug)
     {
-        $product = Product::where('slug', $slug)->firstOrFail();
+        $product = Product::with('images')->where('slug', $slug)->firstOrFail();
         
         // Get related products (same category, excluding current product)
         $relatedProducts = Product::where('category_id', $product->category_id)

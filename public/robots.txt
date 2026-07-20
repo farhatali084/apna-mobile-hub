@@ -1,2 +1,12 @@
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /cart
+Disallow: /add-to-cart
+Disallow: /update-cart
+Disallow: /remove-from-cart
+Disallow: /checkout-whatsapp
+Disallow: /inquire-single
+Disallow: /admin
+
+# Update the domain below after deploying to production
+Sitemap: https://apnamobilehub.com/sitemap.xml

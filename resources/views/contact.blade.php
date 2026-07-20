@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Contact Us - Apna Mobile Hub')
+@section('title', 'Contact Us - Apna Mobile Hub | Wholesale Enquiry & Support | Jamshedpur')
+
+@section('meta_description', 'Contact Apna Mobile Hub for wholesale mobile accessories enquiries, bulk orders & support. WhatsApp: 7979747352, Email: Apnamobilehubjsr@gmail.com. Visit us at Shop No. 456, Sanjay Market, Sakchi, Jamshedpur.')
+@section('meta_keywords', 'contact Apna Mobile Hub, wholesale enquiry mobile accessories, bulk order mobile cases, Jamshedpur mobile shop, Sakchi market contact, WhatsApp order accessories')
+@section('og_title', 'Contact Us - Apna Mobile Hub | Get In Touch')
+@section('og_description', 'Reach out to Apna Mobile Hub for wholesale mobile accessories enquiries, bulk orders & support. WhatsApp, Phone, Email or visit our store in Sakchi, Jamshedpur.')
 
 @section('content')
 @php
@@ -37,7 +42,7 @@
                 <!-- WhatsApp Channel -->
                 <div style="display: flex; gap: 16px; align-items: flex-start;">
                     <div style="width: 40px; height: 40px; background-color: rgba(37, 211, 102, 0.1); border-radius: 10px; color: var(--whatsapp-color); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                        <i data-lucide="message-square"></i>
+                        <i class="fa-solid fa-circle"></i>
                     </div>
                     <div>
                         <h4 style="font-size: 15px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">WhatsApp Chat</h4>
@@ -45,7 +50,7 @@
                             Chat with us for queries, order status, or help.
                         </p>
                         <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $contactWhatsapp) }}" target="_blank" style="font-size: 12px; font-weight: 800; color: var(--whatsapp-color); text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-                            Start Chatting <i data-lucide="external-link" style="width: 12px; height: 12px;"></i>
+                            Start Chatting <i class="fa-solid fa-circle" style="width: 12px; height: 12px;"></i>
                         </a>
                     </div>
                 </div>
@@ -53,7 +58,7 @@
                 <!-- Call Support -->
                 <div style="display: flex; gap: 16px; align-items: flex-start;">
                     <div style="width: 40px; height: 40px; background-color: rgba(255, 94, 43, 0.1); border-radius: 10px; color: var(--accent-orange); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                        <i data-lucide="phone"></i>
+                        <i class="fa-solid fa-phone"></i>
                     </div>
                     <div>
                         <h4 style="font-size: 15px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">Phone Support</h4>
@@ -66,7 +71,7 @@
                 <!-- Email Channel -->
                 <div style="display: flex; gap: 16px; align-items: flex-start;">
                     <div style="width: 40px; height: 40px; background-color: rgba(99, 102, 241, 0.1); border-radius: 10px; color: #6366f1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                        <i data-lucide="mail"></i>
+                        <i class="fa-solid fa-envelope"></i>
                     </div>
                     <div>
                         <h4 style="font-size: 15px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">Email Support</h4>
@@ -79,7 +84,7 @@
                 <!-- Store Location -->
                 <div style="display: flex; gap: 16px; align-items: flex-start;">
                     <div style="width: 40px; height: 40px; background-color: rgba(245, 158, 11, 0.1); border-radius: 10px; color: var(--accent-gold); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                        <i data-lucide="map-pin"></i>
+                        <i class="fa-solid fa-circle"></i>
                     </div>
                     <div>
                         <h4 style="font-size: 15px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">Store Location</h4>
