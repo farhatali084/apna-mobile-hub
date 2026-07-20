@@ -1,0 +1,76 @@
+/* Sedap Admin Panel Custom CSS Theme */
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+/* Global Font & Background overrides */
+body {
+    font-family: 'Outfit', sans-serif !important;
+}
+
+.fi-main {
+    background-color: #F3F4F6 !important;
+}
+
+.fi-topbar {
+    background-color: #F3F4F6 !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+}
+
+/* Sidebar panel layout overrides */
+:root {
+    --sidebar-width: 13rem !important; /* Slimmer sidebar width (reduced by 40% from 20rem) */
+}
+
+.fi-sidebar {
+    background-color: #ffffff !important;
+    border-right: 1px solid #E5E7EB !important;
+    width: var(--sidebar-width) !important;
+}
+
+/* Sidebar Brand Head block */
+.fi-sidebar-header {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #F3F4F6 !important;
+    padding-top: 15px !important;
+    padding-bottom: 15px !important;
+}
+
+/* Active Sidebar Navigation Item style */
+.fi-sidebar-item-button-active {
+    background-color: #EFF6FF !important;
+    color: #2563EB !important;
+    font-weight: 700 !important;
+    border-radius: 12px !important;
+}
+
+.fi-sidebar-item-button-active svg {
+    color: #2563EB !important;
+}
+
+/* Sidebar Navigation Items hover styling */
+.fi-sidebar-item-button:not(.fi-sidebar-item-button-active):hover {
+    background-color: #F9FAFB !important;
+    color: #111827 !important;
+    border-radius: 12px !important;
+}
+
+/* Customize other items in the admin panel like form cards and buttons */
+.fi-section, .fi-fo-wizard, .fi-fo-repeater-item {
+    border-radius: 16px !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.01) !important;
+    border: 1px solid #E5E7EB !important;
+}
+
+.fi-btn {
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+}
+
+.fi-ta-header, .fi-ta-content {
+    background-color: #ffffff !important;
+}
+
+.fi-ta-record-action-edit {
+    color: #2563EB !important;
+}
