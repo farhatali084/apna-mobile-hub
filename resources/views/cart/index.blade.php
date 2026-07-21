@@ -28,17 +28,17 @@
                         <!-- Quantity Selector -->
                         <div class="cart-item-quantity-col">
                             <div class="quantity-picker">
-                                <button type="button" class="qty-btn decrement-qty-btn" onclick="changeQtyBy({{ $id }}, -1)">-</button>
+                                <button type="button" class="qty-btn decrement-qty-btn" onclick="changeQtyBy('{{ $id }}', -1)">-</button>
                                 <input type="number" 
                                        id="qty-input-{{ $id }}" 
                                        class="qty-input" 
                                        value="{{ $details['quantity'] }}" 
                                        min="1" 
                                        max="9999"
-                                       oninput="onQtyInput({{ $id }})"
-                                       onchange="onQtyInput({{ $id }})" 
+                                       oninput="onQtyInput('{{ $id }}')"
+                                       onchange="onQtyInput('{{ $id }}')" 
                                        onkeydown="if(event.key === 'Enter') { this.blur(); }">
-                                <button type="button" class="qty-btn increment-qty-btn" onclick="changeQtyBy({{ $id }}, 1)">+</button>
+                                <button type="button" class="qty-btn increment-qty-btn" onclick="changeQtyBy('{{ $id }}', 1)">+</button>
                             </div>
                         </div>
 
@@ -49,7 +49,7 @@
 
                         <!-- Remove Button -->
                         <div class="cart-item-remove-col">
-                            <button class="cart-remove-btn" onclick="removeFromCart({{ $id }})" title="Remove Item">
+                            <button class="cart-remove-btn" onclick="removeFromCart('{{ $id }}')" title="Remove Item">
                                 <i class="fa-solid fa-circle"></i>
                             </button>
                         </div>
@@ -314,7 +314,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         const checkoutForm = document.querySelector('.checkout-form');
         if (checkoutForm) {
-            checkoutForm.addEventListener('submit', function(e) {
+            checkoutForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 const form = this;
                 const submitBtn = document.getElementById('btn-checkout-whatsapp');
@@ -326,16 +326,26 @@
 
                 const formData = new FormData(form);
 
-                fetch(form.action, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                        'Accept': 'application/json'
-                    },
-                    body: formData
-                })
-                .then(res => res.json())
-                .then(data => {
+                try {
+                    const res = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    });
+
+                    // Parse response as text first, then try JSON
+                    const text = await res.text();
+                    let data;
+                    try {
+                        data = JSON.parse(text);
+                    } catch(e) {
+                        console.error('Non-JSON response:', text.substring(0, 300));
+                        throw new Error('Server returned unexpected response. Please try again.');
+                    }
+
                     if (data.success) {
                         // 1. Auto-download PDF Invoice on user's device
                         const link = document.createElement('a');
@@ -361,15 +371,14 @@
                             submitBtn.innerHTML = '<i class="fa-solid fa-message"></i> Place Order via WhatsApp';
                         }
                     }
-                })
-                .catch(err => {
-                    alert('An error occurred while processing order. Please try again.');
+                } catch (err) {
+                    alert(err.message || 'An error occurred. Please try again.');
                     if (submitBtn) {
                         submitBtn.disabled = false;
                         submitBtn.style.opacity = '1';
                         submitBtn.innerHTML = '<i class="fa-solid fa-message"></i> Place Order via WhatsApp';
                     }
-                });
+                }
             });
         }
     });

@@ -9,14 +9,17 @@ class ImageOptimizer
 {
     /**
      * Compress and save uploaded image directly into public/images/ directory.
-     * Saves ONLY 1 single WebP file directly in web-accessible images folder
-     * eliminating symlink requirements and avoiding duplicate files.
+     * Temporarily boosts PHP memory limit for GD processing, resizes ultra-large
+     * camera photos to 1600px max, and falls back cleanly without 500 memory errors.
      */
     public static function optimize($file, string $directory, string $disk = 'public'): ?string
     {
         if (!$file) {
             return null;
         }
+
+        // Temporarily boost memory limit for GD image conversion
+        @ini_set('memory_limit', '512M');
 
         $realPath = $file->getRealPath();
         $mime = $file->getMimeType();
@@ -49,16 +52,37 @@ class ImageOptimizer
             }
 
             if ($image) {
+                // Downscale ultra-high-resolution images (max 1600px) to save RAM and disk space
+                $width = imagesx($image);
+                $height = imagesy($image);
+                $maxDimension = 1600;
+
+                if ($width > $maxDimension || $height > $maxDimension) {
+                    if ($width >= $height) {
+                        $newWidth = $maxDimension;
+                        $newHeight = (int) round(($height / $width) * $maxDimension);
+                    } else {
+                        $newHeight = $maxDimension;
+                        $newWidth = (int) round(($width / $height) * $maxDimension);
+                    }
+
+                    $resized = imagescale($image, $newWidth, $newHeight);
+                    if ($resized) {
+                        imagedestroy($image);
+                        $image = $resized;
+                    }
+                }
+
                 // Preserve transparency for PNG/WebP
                 imagepalettetotruecolor($image);
                 imagealphablending($image, false);
                 imagesavealpha($image, true);
 
-                // Write ONLY 1 single WebP file directly to public/images/
+                // Write 1 single WebP file directly to public/images/
                 $success = @imagewebp($image, $fullPath, $quality);
                 imagedestroy($image);
 
-                if ($success) {
+                if ($success && file_exists($fullPath)) {
                     return $relativePath;
                 }
             }
@@ -66,7 +90,7 @@ class ImageOptimizer
             Log::error("Image optimization failed: " . $e->getMessage());
         }
 
-        // Fallback: single upload to public/images/ if GD fails
+        // Fallback: standard direct file upload to public/images/ if GD memory/conversion fails
         $fallbackFilename = uniqid() . '.' . ($file->getClientOriginalExtension() ?: 'jpg');
         $fallbackRelative = 'images/' . $cleanDir . '/' . $fallbackFilename;
         $fallbackFull = public_path($fallbackRelative);
@@ -76,7 +100,7 @@ class ImageOptimizer
             @mkdir($dir, 0755, true);
         }
 
-        @move_uploaded_file($realPath, $fallbackFull);
+        @copy($realPath, $fallbackFull);
         return $fallbackRelative;
     }
 }

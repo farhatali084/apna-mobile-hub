@@ -19,6 +19,8 @@ Route::delete('/remove-from-cart', [CartController::class, 'remove'])->name('car
 // WhatsApp redirection routes
 Route::get('/inquire-single/{id}', [CartController::class, 'inquireSingle'])->name('cart.inquireSingle');
 Route::post('/checkout-whatsapp', [CartController::class, 'inquireCart'])->name('cart.inquireCart');
+Route::post('/inquire-variants', [CartController::class, 'inquireVariants'])->name('cart.inquireVariants');
+Route::post('/add-variants-to-cart', [CartController::class, 'addVariants'])->name('cart.addVariants');
 
 // Order PDF routes
 Route::get('/order/{order_number}/pdf', [OrderPdfController::class, 'downloadPdf'])->name('order.pdf');

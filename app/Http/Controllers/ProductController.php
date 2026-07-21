@@ -33,11 +33,10 @@ class ProductController extends Controller
             $currentCategory = Category::where('slug', $request->category)->first();
             if ($currentCategory) {
                 $query->where('category_id', $currentCategory->id);
-                // Load only the values mapped to this category and filter out empty groups
+                // Simple Clean Rule: Load filter groups assigned to this category
+                // with ALL values belonging to each group directly
                 $filterGroups = $currentCategory->filterGroups()
-                    ->with(['values' => function ($q) use ($currentCategory) {
-                        $q->whereIn('filter_values.id', $currentCategory->filterValues->pluck('id'));
-                    }])
+                    ->with('values')
                     ->get()
                     ->filter(fn ($group) => $group->values->isNotEmpty());
             }
@@ -102,14 +101,24 @@ class ProductController extends Controller
      */
     public function show($slug)
     {
-        $product = Product::with('images')->where('slug', $slug)->firstOrFail();
-        
+        $product = Product::with(['images', 'category', 'brand'])->where('slug', $slug)->firstOrFail();
+
+        // Load all filter groups that are assigned to this product's category,
+        // along with their values. This lets users pick size/variant quantities.
+        $filterGroups = collect();
+        if ($product->category) {
+            $filterGroups = $product->category->filterGroups()
+                ->with('values')
+                ->get()
+                ->filter(fn ($group) => $group->values->isNotEmpty());
+        }
+
         // Get related products (same category, excluding current product)
         $relatedProducts = Product::where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->limit(4)
             ->get();
 
-        return view('products.show', compact('product', 'relatedProducts'));
+        return view('products.show', compact('product', 'relatedProducts', 'filterGroups'));
     }
 }
