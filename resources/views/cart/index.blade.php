@@ -13,7 +13,7 @@
                 @php $total = 0; @endphp
                 @foreach($cart as $id => $details)
                     @php $total += $details['price'] * $details['quantity']; @endphp
-                    <div class="cart-item-row" data-id="{{ $id }}">
+                    <div class="cart-item-row" data-id="{{ $id }}" data-price="{{ $details['price'] }}">
                         <div class="cart-item-img-col">
                             <img src="{{ $details['image_path'] }}" alt="{{ $details['name'] }}" class="cart-item-img">
                         </div>
@@ -28,9 +28,17 @@
                         <!-- Quantity Selector -->
                         <div class="cart-item-quantity-col">
                             <div class="quantity-picker">
-                                <button class="qty-btn decrement-qty-btn" onclick="updateQuantity({{ $id }}, {{ $details['quantity'] - 1 }})">-</button>
-                                <span class="qty-display">{{ $details['quantity'] }}</span>
-                                <button class="qty-btn increment-qty-btn" onclick="updateQuantity({{ $id }}, {{ $details['quantity'] + 1 }})">+</button>
+                                <button type="button" class="qty-btn decrement-qty-btn" onclick="changeQtyBy({{ $id }}, -1)">-</button>
+                                <input type="number" 
+                                       id="qty-input-{{ $id }}" 
+                                       class="qty-input" 
+                                       value="{{ $details['quantity'] }}" 
+                                       min="1" 
+                                       max="9999"
+                                       oninput="onQtyInput({{ $id }})"
+                                       onchange="onQtyInput({{ $id }})" 
+                                       onkeydown="if(event.key === 'Enter') { this.blur(); }">
+                                <button type="button" class="qty-btn increment-qty-btn" onclick="changeQtyBy({{ $id }}, 1)">+</button>
                             </div>
                         </div>
 
@@ -61,27 +69,31 @@
                 $grandTotal = $total + $shippingCharge;
             @endphp
             <div class="cart-summary-section">
-                <div class="summary-card">
+                <div class="summary-card" data-shipping-fee="{{ $shippingFeeSetting }}" data-free-threshold="{{ $freeShippingThreshold }}">
                     <h3 class="summary-card-title">Order Summary</h3>
                     
                     <div class="summary-row">
                         <span>Items Total</span>
-                        <span>{{ env('CURRENCY_SYMBOL', '₹') }} {{ number_format($total, 2) }}</span>
+                        <span id="cart-items-total-display">{{ env('CURRENCY_SYMBOL', '₹') }} {{ number_format($total, 2) }}</span>
                     </div>
                     <div class="summary-row">
                         <span>Shipping</span>
-                        @if($shippingCharge > 0)
-                            <span class="shipping-charge-amount">{{ env('CURRENCY_SYMBOL', '₹') }} {{ number_format($shippingCharge, 2) }}</span>
-                        @else
-                            <span class="free-shipping">FREE</span>
-                        @endif
+                        <span id="cart-shipping-display">
+                            @if($shippingCharge > 0)
+                                <span class="shipping-charge-amount">{{ env('CURRENCY_SYMBOL', '₹') }} {{ number_format($shippingCharge, 2) }}</span>
+                            @else
+                                <span class="free-shipping">FREE</span>
+                            @endif
+                        </span>
                     </div>
                     
-                    @if($shippingCharge > 0 && $freeShippingThreshold > 0)
-                        <div class="free-shipping-promo-box" style="margin: 10px 0 15px; padding: 10px 14px; background-color: #FFF9E6; border-radius: var(--radius-sm); border: 1px solid #FFE399; font-size: 12px; color: #8A6D1C; text-align: center; line-height: 1.4; font-weight: 500;">
-                            Add <strong>{{ env('CURRENCY_SYMBOL', '₹') }} {{ number_format($freeShippingThreshold - $total, 2) }}</strong> more to get <strong>FREE SHIPPING!</strong>
-                        </div>
-                    @endif
+                    <div id="free-shipping-promo-wrapper">
+                        @if($shippingCharge > 0 && $freeShippingThreshold > 0)
+                            <div class="free-shipping-promo-box" style="margin: 10px 0 15px; padding: 10px 14px; background-color: #FFF9E6; border-radius: var(--radius-sm); border: 1px solid #FFE399; font-size: 12px; color: #8A6D1C; text-align: center; line-height: 1.4; font-weight: 500;">
+                                Add <strong id="free-shipping-diff">{{ env('CURRENCY_SYMBOL', '₹') }} {{ number_format($freeShippingThreshold - $total, 2) }}</strong> more to get <strong>FREE SHIPPING!</strong>
+                            </div>
+                        @endif
+                    </div>
 
                     <hr class="separator">
                     
@@ -115,12 +127,10 @@
                                 <textarea id="notes" name="notes" class="form-control" rows="2" placeholder="e.g. Please deliver after 5 PM"></textarea>
                             </div>
                             
-                            <button type="submit" class="btn-checkout-whatsapp" @if($grandTotal < 500) disabled style="opacity: 0.5; cursor: not-allowed;" title="Minimum order value is 500" @endif>
+                            <button type="submit" class="btn-checkout-whatsapp" id="btn-checkout-whatsapp" @if($grandTotal < 500) disabled style="opacity: 0.5; cursor: not-allowed;" title="Minimum order value is 500" @endif>
                                 <i class="fa-solid fa-message" class="wa-icon"></i> Place Order via WhatsApp
                             </button>
-                            @if($grandTotal < 500)
-                                <p style="font-size: 11px; color: #ef4444; text-align: center; margin-top: 8px; font-weight: 700;">Minimum order value must be ₹500.</p>
-                            @endif
+                            <p id="min-order-warning" style="font-size: 11px; color: #ef4444; text-align: center; margin-top: 8px; font-weight: 700; display: {{ $grandTotal < 500 ? 'block' : 'none' }};">Minimum order value must be ₹500.</p>
                         </form>
                     </div>
                 </div>
@@ -139,13 +149,135 @@
 
 @section('scripts')
 <script>
-    // Update Cart Quantity
-    function updateQuantity(id, quantity) {
-        if(quantity < 1) {
+    let updateTimeout = null;
+
+    // Real-time instant calculation on typing
+    function onQtyInput(id) {
+        const input = document.getElementById('qty-input-' + id);
+        if (!input) return;
+
+        let qtyVal = input.value;
+        let qty = parseInt(qtyVal);
+        
+        if (isNaN(qty) || qty < 1) {
+            qty = 0;
+        }
+
+        const row = document.querySelector('.cart-item-row[data-id="' + id + '"]');
+        if (row) {
+            const price = parseFloat(row.getAttribute('data-price')) || 0;
+            const itemSubtotal = price * qty;
+            const subtotalEl = row.querySelector('.cart-item-subtotal');
+            if (subtotalEl) {
+                subtotalEl.innerText = '₹ ' + itemSubtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+        }
+
+        recalculateCartTotals();
+
+        // Background debounced session update
+        clearTimeout(updateTimeout);
+        if (qty > 0) {
+            updateTimeout = setTimeout(() => {
+                syncCartQuantity(id, qty);
+            }, 300);
+        }
+    }
+
+    // Change quantity via + or - buttons
+    function changeQtyBy(id, delta) {
+        const input = document.getElementById('qty-input-' + id);
+        if (!input) return;
+
+        let current = parseInt(input.value) || 1;
+        let newQty = current + delta;
+
+        if (newQty < 1) {
             removeFromCart(id);
             return;
         }
-        
+
+        input.value = newQty;
+        onQtyInput(id);
+    }
+
+    // Instant client-side recalculation of entire summary card
+    function recalculateCartTotals() {
+        let itemsTotal = 0;
+        document.querySelectorAll('.cart-item-row').forEach(row => {
+            const price = parseFloat(row.getAttribute('data-price')) || 0;
+            const id = row.getAttribute('data-id');
+            const input = document.getElementById('qty-input-' + id);
+            let qty = parseInt(input ? input.value : 0);
+            if (isNaN(qty) || qty < 0) qty = 0;
+            itemsTotal += price * qty;
+        });
+
+        const summaryCard = document.querySelector('.summary-card');
+        if (!summaryCard) return;
+
+        const shippingFeeSetting = parseFloat(summaryCard.getAttribute('data-shipping-fee')) || 0;
+        const freeShippingThreshold = parseFloat(summaryCard.getAttribute('data-free-threshold')) || 0;
+
+        let shippingCharge = shippingFeeSetting;
+        if (freeShippingThreshold > 0 && itemsTotal >= freeShippingThreshold) {
+            shippingCharge = 0;
+        }
+        const grandTotal = itemsTotal + shippingCharge;
+
+        // Update Items Total Display
+        const itemsTotalEl = document.getElementById('cart-items-total-display');
+        if (itemsTotalEl) {
+            itemsTotalEl.innerText = '₹ ' + itemsTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // Update Shipping Charge Display
+        const shippingEl = document.getElementById('cart-shipping-display');
+        if (shippingEl) {
+            if (shippingCharge > 0) {
+                shippingEl.innerHTML = '<span class="shipping-charge-amount">₹ ' + shippingCharge.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</span>';
+            } else {
+                shippingEl.innerHTML = '<span class="free-shipping">FREE</span>';
+            }
+        }
+
+        // Update Free Shipping Banner
+        const promoWrapper = document.getElementById('free-shipping-promo-wrapper');
+        if (promoWrapper) {
+            if (shippingCharge > 0 && freeShippingThreshold > 0 && itemsTotal < freeShippingThreshold) {
+                const diff = freeShippingThreshold - itemsTotal;
+                promoWrapper.innerHTML = '<div class="free-shipping-promo-box" style="margin: 10px 0 15px; padding: 10px 14px; background-color: #FFF9E6; border-radius: var(--radius-sm); border: 1px solid #FFE399; font-size: 12px; color: #8A6D1C; text-align: center; line-height: 1.4; font-weight: 500;">Add <strong>₹ ' + diff.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</strong> more to get <strong>FREE SHIPPING!</strong></div>';
+            } else {
+                promoWrapper.innerHTML = '';
+            }
+        }
+
+        // Update Grand Total Display
+        const grandTotalEl = document.querySelector('.summary-total-price');
+        if (grandTotalEl) {
+            grandTotalEl.innerText = '₹ ' + grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // Update WhatsApp Order Submit Button state
+        const submitBtn = document.getElementById('btn-checkout-whatsapp');
+        const minOrderMsg = document.getElementById('min-order-warning');
+        if (submitBtn) {
+            if (grandTotal < 500) {
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.5';
+                submitBtn.style.cursor = 'not-allowed';
+                if (minOrderMsg) minOrderMsg.style.display = 'block';
+            } else {
+                submitBtn.disabled = false;
+                submitBtn.style.opacity = '1';
+                submitBtn.style.cursor = 'pointer';
+                if (minOrderMsg) minOrderMsg.style.display = 'none';
+            }
+        }
+    }
+
+    // Sync quantity to backend session
+    function syncCartQuantity(id, quantity) {
         fetch('{{ route('cart.update') }}', {
             method: 'PATCH',
             headers: {
@@ -156,10 +288,6 @@
                 id: id,
                 quantity: quantity
             })
-        })
-        .then(response => {
-            // Reload page to reflect changes
-            window.location.reload();
         });
     }
 
@@ -177,10 +305,73 @@
                 })
             })
             .then(response => {
-                // Reload page to reflect changes
                 window.location.reload();
             });
         }
     }
+
+    // AJAX Checkout Form Submission with Auto-Download & WhatsApp Tab Open
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkoutForm = document.querySelector('.checkout-form');
+        if (checkoutForm) {
+            checkoutForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const form = this;
+                const submitBtn = document.getElementById('btn-checkout-whatsapp');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.style.opacity = '0.7';
+                    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating Invoice...';
+                }
+
+                const formData = new FormData(form);
+
+                fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        // 1. Auto-download PDF Invoice on user's device
+                        const link = document.createElement('a');
+                        link.href = data.pdf_url;
+                        link.target = '_blank';
+                        link.download = '';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+
+                        // 2. Open WhatsApp pre-filled window/tab
+                        window.open(data.whatsapp_url, '_blank');
+
+                        // 3. Reload cart after short delay
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1200);
+                    } else {
+                        alert(data.message || 'Failed to process order. Please try again.');
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.style.opacity = '1';
+                            submitBtn.innerHTML = '<i class="fa-solid fa-message"></i> Place Order via WhatsApp';
+                        }
+                    }
+                })
+                .catch(err => {
+                    alert('An error occurred while processing order. Please try again.');
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.style.opacity = '1';
+                        submitBtn.innerHTML = '<i class="fa-solid fa-message"></i> Place Order via WhatsApp';
+                    }
+                });
+            });
+        }
+    });
 </script>
 @endsection

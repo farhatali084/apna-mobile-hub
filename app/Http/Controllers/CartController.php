@@ -164,7 +164,9 @@ class CartController extends Controller
 
         $message = "🌐 *Product Inquiry*\n";
         if ($order) {
-            $message .= "*Lead Reference:* #{$order->order_number}\n\n";
+            $pdfUrl = route('order.pdf', $order->order_number);
+            $message .= "*Lead Reference:* #{$order->order_number}\n";
+            $message .= "📄 *Download Invoice PDF:* {$pdfUrl}\n\n";
         } else {
             $message .= "\n";
         }
@@ -240,40 +242,27 @@ class CartController extends Controller
             return redirect()->back()->with('error', 'Failed to process order. Please try again.');
         }
 
-        // Build WhatsApp Message
-        $message = "🛍️ *NEW E-COMMERCE ORDER*\n";
-        $message .= "*Order Reference:* #{$order->order_number}\n\n";
-        $message .= "Hello Admin, I would like to place an order with the following details:\n\n";
-        
-        $message .= "📦 *Order Items:*\n";
-        foreach ($cart as $id => $details) {
-            $subtotal = $details['price'] * $details['quantity'];
-            $message .= "• *{$details['name']}* (Qty: {$details['quantity']}) - {$currency} {$subtotal}\n";
-        }
+        $pdfUrl = route('order.pdf', $order->order_number);
 
-        $message .= "\n💵 *Subtotal:* {$currency} {$total}\n";
-        if ($shippingCharge > 0) {
-            $message .= "🚚 *Shipping:* {$currency} {$shippingCharge}\n";
-        } else {
-            $message .= "🚚 *Shipping:* FREE\n";
-        }
-        $message .= "💳 *Total Amount:* {$currency} {$grandTotal}\n\n";
-        
-        $message .= "👤 *Customer Information:*\n";
-        $message .= "• *Name:* " . $request->input('name') . "\n";
-        $message .= "• *Phone:* " . $request->input('phone') . "\n";
-        $message .= "• *Address:* " . $request->input('address') . "\n";
-        
-        if ($request->filled('notes')) {
-            $message .= "• *Notes:* " . $request->input('notes') . "\n";
-        }
-        
-        $message .= "\nPlease confirm my order. Thank you!";
+        // Build Concise WhatsApp Message
+        $message = "*NEW ORDER*\n";
+        $message .= "*Order Reference:* #{$order->order_number}\n";
+        $message .= "*Download Invoice PDF:* {$pdfUrl}\n\n";
+        $message .= "Hello, I have placed a new order. All details are attached in the PDF invoice above. Please confirm my order. Thank you!";
 
         // Clear the cart
         session()->forget('cart');
 
         $whatsappUrl = "https://wa.me/{$phone}?text=" . urlencode($message);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'pdf_url' => $pdfUrl,
+                'whatsapp_url' => $whatsappUrl
+            ]);
+        }
+
         return redirect($whatsappUrl);
     }
 }

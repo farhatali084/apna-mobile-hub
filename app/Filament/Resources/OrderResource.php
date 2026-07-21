@@ -122,6 +122,12 @@ class OrderResource extends Resource
                 TrashedFilter::make(),
             ])
             ->recordActions([
+                \Filament\Actions\Action::make('download_pdf')
+                    ->label('PDF Invoice')
+                    ->icon(Heroicon::OutlinedDocumentArrowDown)
+                    ->color('success')
+                    ->url(fn (Order $record) => route('order.pdf', $record->order_number))
+                    ->openUrlInNewTab(),
                 EditAction::make(),
                 DeleteAction::make(),
                 RestoreAction::make(),

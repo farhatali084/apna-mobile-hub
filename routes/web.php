@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\OrderPdfController;
 
 // Storefront routes
 Route::get('/', [ProductController::class, 'index'])->name('products.index');
@@ -18,6 +19,10 @@ Route::delete('/remove-from-cart', [CartController::class, 'remove'])->name('car
 // WhatsApp redirection routes
 Route::get('/inquire-single/{id}', [CartController::class, 'inquireSingle'])->name('cart.inquireSingle');
 Route::post('/checkout-whatsapp', [CartController::class, 'inquireCart'])->name('cart.inquireCart');
+
+// Order PDF routes
+Route::get('/order/{order_number}/pdf', [OrderPdfController::class, 'downloadPdf'])->name('order.pdf');
+Route::get('/order/{order_number}/view-pdf', [OrderPdfController::class, 'viewPdf'])->name('order.viewPdf');
 
 // About Us & Contact Us routes
 Route::view('/about', 'about')->name('about');

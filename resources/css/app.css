@@ -1008,6 +1008,26 @@ body {
     padding: 0 10px;
 }
 
+.qty-input {
+    width: 44px;
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    font-weight: 800;
+    text-align: center;
+    color: var(--text-primary);
+    outline: none;
+    padding: 0 4px;
+    font-family: inherit;
+    -moz-appearance: textfield;
+}
+
+.qty-input::-webkit-outer-spin-button,
+.qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
 .cart-item-subtotal {
     font-size: 15px;
     font-weight: 900;
