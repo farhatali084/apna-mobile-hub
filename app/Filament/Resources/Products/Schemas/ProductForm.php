@@ -92,10 +92,9 @@ class ProductForm
                         $category = Category::find($categoryId);
                         if (!$category) return [];
 
-                        return $category->filterGroups->map(function ($group) use ($record, $category) {
-                            $options = $category->filterValues()
-                                ->where('filter_values.filter_group_id', $group->id)
-                                ->pluck('filter_values.value', 'filter_values.id');
+                        return $category->filterGroups->map(function ($group) use ($record) {
+                            // Direct & Clean Rule: Fetch all values belonging to this Filter Group
+                            $options = $group->values()->pluck('value', 'id');
 
                             return CheckboxList::make("filter_group_{$group->id}")
                                 ->label($group->name)
