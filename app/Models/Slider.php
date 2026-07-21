@@ -27,10 +27,18 @@ class Slider extends Model
             return '';
         }
 
-        if (str_starts_with($value, 'http://') || str_starts_with($value, 'https://') || str_starts_with($value, '/images/')) {
+        if (str_starts_with($value, 'http://') || str_starts_with($value, 'https://')) {
             return $value;
         }
 
-        return asset('storage/' . $value);
+        $cleanPath = ltrim($value, '/');
+
+        // Check if path starts with images/ or storage/
+        if (str_starts_with($cleanPath, 'images/') || str_starts_with($cleanPath, 'storage/')) {
+            return asset($cleanPath);
+        }
+
+        // Default fallback to storage/
+        return asset('storage/' . $cleanPath);
     }
 }

@@ -8,7 +8,9 @@ use Illuminate\Support\Facades\Log;
 class ImageOptimizer
 {
     /**
-     * Compress and save uploaded image file using native GD library.
+     * Compress and save uploaded image directly into public/images/ directory.
+     * Saves ONLY 1 single WebP file directly in web-accessible images folder
+     * eliminating symlink requirements and avoiding duplicate files.
      */
     public static function optimize($file, string $directory, string $disk = 'public'): ?string
     {
@@ -19,16 +21,19 @@ class ImageOptimizer
         $realPath = $file->getRealPath();
         $mime = $file->getMimeType();
 
-        // Ensure target directory exists on disk
-        Storage::disk($disk)->makeDirectory($directory);
+        // Unique WebP filename in public/images/
+        $cleanDir = trim($directory, '/');
+        $filename = uniqid() . '.webp';
+        $relativePath = 'images/' . $cleanDir . '/' . $filename;
+        $fullPath = public_path($relativePath);
 
-        // Force WebP extension for all compressed images (Industry standard for web)
-        $extension = 'webp';
-        $filename = uniqid() . '.' . $extension;
-        $targetPath = $directory . '/' . $filename;
-        $fullTargetPath = Storage::disk($disk)->path($targetPath);
+        // Ensure public/images/{directory} folder exists
+        $dir = dirname($fullPath);
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0755, true);
+        }
 
-        // WebP compression quality (0-100)
+        // WebP compression quality (75%)
         $quality = 75;
 
         try {
@@ -44,25 +49,34 @@ class ImageOptimizer
             }
 
             if ($image) {
-                // Keep transparency intact during WebP conversion
+                // Preserve transparency for PNG/WebP
                 imagepalettetotruecolor($image);
                 imagealphablending($image, false);
                 imagesavealpha($image, true);
 
-                // Write as WebP format with 75% quality
-                $success = @imagewebp($image, $fullTargetPath, $quality);
+                // Write ONLY 1 single WebP file directly to public/images/
+                $success = @imagewebp($image, $fullPath, $quality);
                 imagedestroy($image);
 
                 if ($success) {
-                    return $targetPath;
+                    return $relativePath;
                 }
             }
         } catch (\Throwable $e) {
             Log::error("Image optimization failed: " . $e->getMessage());
         }
 
-        // Fallback: standard file upload with original extension if GD conversion fails
+        // Fallback: single upload to public/images/ if GD fails
         $fallbackFilename = uniqid() . '.' . ($file->getClientOriginalExtension() ?: 'jpg');
-        return $file->storeAs($directory, $fallbackFilename, $disk);
+        $fallbackRelative = 'images/' . $cleanDir . '/' . $fallbackFilename;
+        $fallbackFull = public_path($fallbackRelative);
+
+        $dir = dirname($fallbackFull);
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0755, true);
+        }
+
+        @move_uploaded_file($realPath, $fallbackFull);
+        return $fallbackRelative;
     }
 }

@@ -39,11 +39,17 @@ class Product extends Model
             return 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&q=80';
         }
 
-        if (str_starts_with($value, 'http://') || str_starts_with($value, 'https://') || str_starts_with($value, '/images/')) {
+        if (str_starts_with($value, 'http://') || str_starts_with($value, 'https://')) {
             return $value;
         }
 
-        return asset('storage/' . $value);
+        $cleanPath = ltrim($value, '/');
+
+        if (str_starts_with($cleanPath, 'images/') || str_starts_with($cleanPath, 'storage/')) {
+            return asset($cleanPath);
+        }
+
+        return asset('storage/' . $cleanPath);
     }
 
     /**
