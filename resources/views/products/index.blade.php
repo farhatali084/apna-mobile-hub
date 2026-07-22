@@ -647,10 +647,16 @@
         setupSlider('featured-slider', 'featured-prev', 'featured-next', 4500);
         setupSlider('new-slider', 'new-prev', 'new-next', 5000);
         setupSlider('reviews-slider', 'reviews-prev', 'reviews-next', 6000);
-        setupSlider('deals-slider-container', 'deals-prev', 'deals-next', 700);
-        setupSlider('brands-slider-container', 'brands-prev', 'brands-next', 700);
-        setupSlider('bestsellers-slider-container', 'bestsellers-prev', 'bestsellers-next', 700);
-        setupSlider('demanded-slider-container', 'demanded-prev', 'demanded-next', 700);
+        // Top Deals, Top Brands, Best Sellers, New Arrivals — manual scroll only (no auto-scroll)
+        ['deals-slider-container', 'brands-slider-container', 'bestsellers-slider-container', 'demanded-slider-container'].forEach(function(sliderId) {
+            const slider = document.getElementById(sliderId);
+            if (!slider) return;
+            const prefix = sliderId.replace('-slider-container', '').replace('-slider', '');
+            const prev = document.getElementById(prefix + '-prev');
+            const next = document.getElementById(prefix + '-next');
+            if (prev) prev.addEventListener('click', () => slider.scrollBy({ left: -320, behavior: 'smooth' }));
+            if (next) next.addEventListener('click', () => slider.scrollBy({ left: 320, behavior: 'smooth' }));
+        });
 
         // --- B2B Premium Hero Parallax & Animations ---
         const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
