@@ -297,10 +297,8 @@
     font-size: 14px;
     font-weight: 600;
     color: var(--text-primary, #0f172a);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 180px;
+    word-break: break-word;
+    overflow-wrap: anywhere;
 }
 .variant-price-tag {
     display: block;

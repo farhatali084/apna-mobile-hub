@@ -316,7 +316,7 @@
 
     <!-- 3. Top Deals Section (Auto-Scrolling Slider) -->
     @if(isset($topDeals) && $topDeals->count() > 0)
-    <section class="deals-section-rz container" id="deals" style="padding: 40px 0 60px;">
+    <section class="deals-section-rz container" id="deals" style="padding-top: 40px; padding-bottom: 60px;">
         <div class="section-title-wrapper" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
             <h2 class="category-section-title" style="margin: 0;">Top Deals</h2>
             <div style="display: flex; gap: 10px; align-items: center;">
@@ -327,7 +327,7 @@
         
         <div id="deals-slider-container" style="overflow-x: auto; scroll-behavior: smooth; display: flex; gap: 20px; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 10px;">
             @foreach($topDeals as $product)
-                <div class="product-card-rz deals-product-card" style="flex: 0 0 280px; width: 280px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; position: relative; transition: all 0.3s; box-shadow: var(--shadow-sm);" onmouseover="this.style.borderColor='var(--accent-orange)'; this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'">
+                <div class="product-card-rz deals-product-card" style="flex: 0 0 280px; width: 280px; max-width: 100%; overflow: hidden; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; position: relative; transition: all 0.3s; box-shadow: var(--shadow-sm);" onmouseover="this.style.borderColor='var(--accent-orange)'; this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'">
                     @php $sliderImages = $product->getAllImageUrls(); @endphp
                     <div class="product-card-img-wrapper" style="background-color: var(--bg-primary); border-radius: 12px; height: 220px; overflow: hidden; position: relative;" x-data="{ activeImg: 0, images: {{ json_encode($sliderImages) }} }">
                         <a href="{{ route('products.show', $product->slug) }}" style="width: 100%; height: 100%; display: block;">
@@ -343,8 +343,8 @@
                         @endif
                     </div>
                     
-                    <div class="product-card-info" style="margin-top: 14px; display: flex; flex-direction: column; gap: 6px; flex-grow: 1;">
-                        <h3 style="font-size: 14px; font-weight: 800; line-height: 1.35; font-family: 'Montserrat', sans-serif; margin: 0;"><a href="{{ route('products.show', $product->slug) }}" style="color: var(--text-primary); text-decoration: none;">{{ $product->name }}</a></h3>
+                    <div class="product-card-info" style="margin-top: 14px; display: flex; flex-direction: column; gap: 6px; flex-grow: 1; min-width: 0; width: 100%; overflow: hidden;">
+                        <h3 style="font-size: 14px; font-weight: 800; line-height: 1.35; font-family: 'Montserrat', sans-serif; margin: 0; word-break: break-word; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;"><a href="{{ route('products.show', $product->slug) }}" style="color: var(--text-primary); text-decoration: none; word-break: break-word; overflow-wrap: anywhere;">{{ $product->name }}</a></h3>
                         
                         <div class="price-row-badge" style="display: flex; align-items: center; gap: 8px; margin-top: auto; padding-top: 10px; border-top: 1px dashed var(--border-color);">
                             <span class="price-text" style="font-size: 15px; font-weight: 900; color: var(--text-primary);">{{ env('CURRENCY_SYMBOL', '₹') }}{{ number_format($product->price, 0) }}</span>
@@ -363,7 +363,7 @@
     @endif
 
     <!-- 3.5 Top Brands Section (Auto-Scrolling Slider) -->
-    <section class="brands-section-rz container" id="top-brands" style="padding: 0 0 60px;">
+    <section class="brands-section-rz container" id="top-brands" style="padding-top: 0; padding-bottom: 60px;">
         <div class="section-title-wrapper" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
             <h2 class="category-section-title" style="margin: 0;">Top Brands</h2>
             <div style="display: flex; gap: 10px; align-items: center;">
@@ -373,39 +373,25 @@
         </div>
         
         <div id="brands-slider-container" style="overflow-x: auto; scroll-behavior: smooth; display: flex; gap: 20px; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 10px;">
-            @php
-                $dbBrands = \App\Models\Brand::where('is_active', true)->orderBy('sort_order', 'asc')->get();
-            @endphp
-            @if($dbBrands->count() > 0)
-                @foreach($dbBrands as $brand)
+            @php $brands = \App\Models\Brand::all(); @endphp
+            @if($brands->count() > 0)
+                @foreach($brands as $brand)
                     <a href="{{ route('products.index', ['brand' => $brand->slug]) }}" class="brand-card-rz brand-card" style="flex: 0 0 175px; width: 175px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; height: 135px; transition: all 0.3s; text-decoration: none;" onmouseover="this.style.borderColor='var(--accent-orange)'; this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'">
-                        @if($brand->logo)
-                            @php
-                                $logoSrc = \Illuminate\Support\Str::startsWith($brand->logo, ['http://', 'https://']) 
-                                    ? $brand->logo 
-                                    : (\Illuminate\Support\Str::startsWith($brand->logo, 'storage/') || \Illuminate\Support\Str::startsWith($brand->logo, 'brands/') 
-                                        ? Storage::url($brand->logo) 
-                                        : asset($brand->logo));
-                            @endphp
-                            <img src="{{ $logoSrc }}" alt="{{ $brand->name }}" style="height: 60px; width: auto; max-width: 140px; object-fit: contain;">
-                        @endif
+                        <img src="{{ $brand->getImageUrl() }}" alt="{{ $brand->name }}" style="height: 52px; width: auto; max-width: 130px; object-fit: contain;">
                         <span style="font-size: 13px; font-weight: 700; font-family: 'Montserrat', sans-serif; color: var(--text-primary); letter-spacing: -0.2px; text-transform: uppercase;">{{ $brand->name }}</span>
                     </a>
                 @endforeach
             @else
+                <!-- Fallback Brands -->
                 @php
                     $brandList = [
                         ['name' => 'Apple', 'slug' => 'apple', 'domain' => 'apple.com'],
-                        ['name' => 'SAMSUNG', 'slug' => 'samsung', 'domain' => 'samsung.com'],
+                        ['name' => 'Samsung', 'slug' => 'samsung', 'domain' => 'samsung.com'],
                         ['name' => 'OnePlus', 'slug' => 'oneplus', 'domain' => 'oneplus.com'],
                         ['name' => 'Xiaomi', 'slug' => 'xiaomi', 'domain' => 'mi.com'],
                         ['name' => 'realme', 'slug' => 'realme', 'domain' => 'realme.com'],
                         ['name' => 'boAt', 'slug' => 'boat', 'domain' => 'boat-lifestyle.com'],
                         ['name' => 'ANKER', 'slug' => 'anker', 'domain' => 'anker.com'],
-                        ['name' => 'PORTRONICS', 'slug' => 'portronics', 'domain' => 'portronics.com'],
-                        ['name' => 'UGREEN', 'slug' => 'ugreen', 'domain' => 'ugreen.com'],
-                        ['name' => 'Spigen', 'slug' => 'spigen', 'domain' => 'spigen.com'],
-                        ['name' => 'ESR', 'slug' => 'esr', 'domain' => 'esrgear.com']
                     ];
                 @endphp
                 @foreach($brandList as $brand)
@@ -420,7 +406,7 @@
 
     <!-- 3.7 Best Sellers Section (Auto-Scrolling Slider) -->
     @if(isset($bestSellers) && $bestSellers->count() > 0)
-    <section class="deals-section-rz container" id="best-sellers" style="padding: 0 0 60px;">
+    <section class="deals-section-rz container" id="best-sellers" style="padding-top: 0; padding-bottom: 60px;">
         <div class="section-title-wrapper" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
             <h2 class="category-section-title" style="margin: 0;">Best Sellers</h2>
             <div style="display: flex; gap: 10px; align-items: center;">
@@ -431,7 +417,7 @@
         
         <div id="bestsellers-slider-container" style="overflow-x: auto; scroll-behavior: smooth; display: flex; gap: 20px; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 10px;">
             @foreach($bestSellers as $product)
-                <div class="product-card-rz deals-product-card" style="flex: 0 0 280px; width: 280px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; position: relative; transition: all 0.3s; box-shadow: var(--shadow-sm);" onmouseover="this.style.borderColor='var(--accent-orange)'; this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'">
+                <div class="product-card-rz deals-product-card" style="flex: 0 0 280px; width: 280px; max-width: 100%; overflow: hidden; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; position: relative; transition: all 0.3s; box-shadow: var(--shadow-sm);" onmouseover="this.style.borderColor='var(--accent-orange)'; this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'">
                     @php $sliderImages = $product->getAllImageUrls(); @endphp
                     <div class="product-card-img-wrapper" style="background-color: var(--bg-primary); border-radius: 12px; height: 220px; overflow: hidden; position: relative;" x-data="{ activeImg: 0, images: {{ json_encode($sliderImages) }} }">
                         <a href="{{ route('products.show', $product->slug) }}" style="width: 100%; height: 100%; display: block;">
@@ -447,8 +433,8 @@
                         @endif
                     </div>
                     
-                    <div class="product-card-info" style="margin-top: 14px; display: flex; flex-direction: column; gap: 6px; flex-grow: 1;">
-                        <h3 style="font-size: 14px; font-weight: 800; line-height: 1.35; font-family: 'Montserrat', sans-serif; margin: 0;"><a href="{{ route('products.show', $product->slug) }}" style="color: var(--text-primary); text-decoration: none;">{{ $product->name }}</a></h3>
+                    <div class="product-card-info" style="margin-top: 14px; display: flex; flex-direction: column; gap: 6px; flex-grow: 1; min-width: 0; width: 100%; overflow: hidden;">
+                        <h3 style="font-size: 14px; font-weight: 800; line-height: 1.35; font-family: 'Montserrat', sans-serif; margin: 0; word-break: break-word; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;"><a href="{{ route('products.show', $product->slug) }}" style="color: var(--text-primary); text-decoration: none; word-break: break-word; overflow-wrap: anywhere;">{{ $product->name }}</a></h3>
                         
                         <div class="price-row-badge" style="display: flex; align-items: center; gap: 8px; margin-top: auto; padding-top: 10px; border-top: 1px dashed var(--border-color);">
                             <span class="price-text" style="font-size: 15px; font-weight: 900; color: var(--text-primary);">{{ env('CURRENCY_SYMBOL', '₹') }}{{ number_format($product->price, 0) }}</span>
@@ -466,7 +452,7 @@
     </section>
 @endif
     <!-- 3.9 Dual Promotional Banners Section -->
-    <section class="container" style="padding: 0 0 60px;">
+    <section class="container" style="padding-top: 0; padding-bottom: 60px;">
         <div class="promo-banners-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
             <!-- Left Banner -->
             <div class="reveal-slide-left promo-banner-card-rz" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-radius: 20px; padding: 40px; color: #ffffff; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; min-height: 220px; box-shadow: var(--shadow-md);">
@@ -493,7 +479,7 @@
     </section>
 
     <!-- 3.11 1. New Arrivals Section (Auto-Scrolling Slider) -->
-    <section class="deals-section-rz container" id="most-demanded" style="padding: 0 0 60px;">
+    <section class="deals-section-rz container" id="most-demanded" style="padding-top: 0; padding-bottom: 60px;">
         <div class="section-title-wrapper" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
             <h2 class="category-section-title" style="margin: 0;">New Arrivals<span style="font-size: 20px;"></span></h2>
             <div style="display: flex; gap: 10px; align-items: center;">
@@ -504,7 +490,7 @@
         
         <div id="demanded-slider-container" style="overflow-x: auto; scroll-behavior: smooth; display: flex; gap: 20px; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 10px;">
             @foreach(\App\Models\Product::latest()->take(10)->get() as $product)
-                <div class="product-card-rz deals-product-card" style="flex: 0 0 280px; width: 280px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; position: relative; transition: all 0.3s; box-shadow: var(--shadow-sm);" onmouseover="this.style.borderColor='var(--accent-orange)'; this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'">
+                <div class="product-card-rz deals-product-card" style="flex: 0 0 280px; width: 280px; max-width: 100%; overflow: hidden; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; position: relative; transition: all 0.3s; box-shadow: var(--shadow-sm);" onmouseover="this.style.borderColor='var(--accent-orange)'; this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'">
                     @php $sliderImages = $product->getAllImageUrls(); @endphp
                     <div class="product-card-img-wrapper" style="background-color: var(--bg-primary); border-radius: 12px; height: 220px; overflow: hidden; position: relative;" x-data="{ activeImg: 0, images: {{ json_encode($sliderImages) }} }">
                         <a href="{{ route('products.show', $product->slug) }}" style="width: 100%; height: 100%; display: block;">
@@ -520,8 +506,8 @@
                         @endif
                     </div>
                     
-                    <div class="product-card-info" style="margin-top: 14px; display: flex; flex-direction: column; gap: 6px; flex-grow: 1;">
-                        <h3 style="font-size: 14px; font-weight: 800; line-height: 1.35; font-family: 'Montserrat', sans-serif; margin: 0;"><a href="{{ route('products.show', $product->slug) }}" style="color: var(--text-primary); text-decoration: none;">{{ $product->name }}</a></h3>
+                    <div class="product-card-info" style="margin-top: 14px; display: flex; flex-direction: column; gap: 6px; flex-grow: 1; min-width: 0; width: 100%; overflow: hidden;">
+                        <h3 style="font-size: 14px; font-weight: 800; line-height: 1.35; font-family: 'Montserrat', sans-serif; margin: 0; word-break: break-word; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;"><a href="{{ route('products.show', $product->slug) }}" style="color: var(--text-primary); text-decoration: none; word-break: break-word; overflow-wrap: anywhere;">{{ $product->name }}</a></h3>
                         
                         <div class="price-row-badge" style="display: flex; align-items: center; gap: 8px; margin-top: auto; padding-top: 10px; border-top: 1px dashed var(--border-color);">
                             <span class="price-text" style="font-size: 15px; font-weight: 900; color: var(--text-primary);">{{ env('CURRENCY_SYMBOL', '₹') }}{{ number_format($product->price, 0) }}</span>
@@ -592,7 +578,7 @@
     </section>
 
     <!-- 6. Trusted by Leading Brands Strip -->
-    <section class="container" id="brands" style="padding: 20px 0 60px; text-align: center;">
+    <section class="container" id="brands" style="padding-top: 20px; padding-bottom: 60px; text-align: center;">
         <h4 class="brands-title-label">Trusted by Leading Brands</h4>
         <div class="brands-strip-container">
             <span>ANKER</span>

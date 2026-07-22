@@ -21,11 +21,25 @@ class Brand extends Model
         });
     }
 
-    public function getLogoUrlAttribute(): ?string
+    /**
+     * Get image / logo URL with fallback
+     */
+    public function getImageUrl(): ?string
     {
         if ($this->logo) {
+            if (Str::startsWith($this->logo, ['http://', 'https://'])) {
+                return $this->logo;
+            }
+            if (Str::startsWith($this->logo, ['storage/', '/storage/'])) {
+                return asset($this->logo);
+            }
             return Storage::url($this->logo);
         }
-        return null;
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=fff&color=000&format=svg';
+    }
+
+    public function getLogoUrlAttribute(): ?string
+    {
+        return $this->getImageUrl();
     }
 }
