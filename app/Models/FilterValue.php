@@ -6,7 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class FilterValue extends Model
 {
-    protected $fillable = ['filter_group_id', 'value', 'color_hex'];
+    protected $fillable = ['filter_group_id', 'value', 'color_hex', 'min_qty'];
+
+    protected $casts = [
+        'min_qty' => 'integer',
+    ];
+
 
     /**
      * Get the filter group that owns the value.

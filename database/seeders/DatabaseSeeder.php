@@ -15,10 +15,10 @@ class DatabaseSeeder extends Seeder
     {
         // Seed default admin user
         User::updateOrCreate(
-            ['email' => 'admin@admin.com'],
+            ['email' => 'Apnamobilehubjsr@gmail.com'],
             [
                 'name' => 'Admin User',
-                'password' => bcrypt('password'),
+                'password' => bcrypt('mobile@12hub'),
             ]
         );
 

@@ -71,10 +71,18 @@ class FilterGroupResource extends Resource
                                     ->label('Tag Value'),
                                 ColorPicker::make('color_hex')
                                     ->label('Color Hex (Optional)'),
+                                TextInput::make('min_qty')
+                                    ->label('Min. Order Qty')
+                                    ->numeric()
+                                    ->default(1)
+                                    ->minValue(1)
+                                    ->required()
+                                    ->helperText('User must order at least this many pieces of this variant'),
                             ])
                             ->collapsible()
-                            ->columns(2)
+                            ->columns(3)
                     ]),
+
             ]);
     }
 

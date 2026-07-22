@@ -123,7 +123,8 @@
 
                             <div class="variant-rows-list">
                                 @foreach($group->values as $val)
-                                    <div class="variant-row" data-group="{{ $group->id }}" data-value-id="{{ $val->id }}" data-value-name="{{ $val->value }}">
+                                    @php $minQty = $val->min_qty ?? 1; @endphp
+                                    <div class="variant-row" data-group="{{ $group->id }}" data-value-id="{{ $val->id }}" data-value-name="{{ $val->value }}" data-min-qty="{{ $minQty }}">
                                         <div class="variant-row-left">
                                             @if($val->color_hex)
                                                 <span class="variant-color-dot" style="background:{{ $val->color_hex }};"></span>
@@ -131,6 +132,9 @@
                                             <div>
                                                 <span class="variant-name">{{ $val->value }}</span>
                                                 <span class="variant-price-tag">{{ env('CURRENCY_SYMBOL', '₹') }}{{ number_format($product->price, 0) }} per piece</span>
+                                                @if($minQty > 1)
+                                                    <span class="moq-badge">Min. order: {{ $minQty }} pcs</span>
+                                                @endif
                                             </div>
                                         </div>
                                         <div class="variant-qty-controls">
@@ -140,9 +144,11 @@
                                                    data-value-id="{{ $val->id }}"
                                                    data-value-name="{{ $val->value }}"
                                                    data-price="{{ $product->price }}"
+                                                   data-min-qty="{{ $minQty }}"
                                                    oninput="onVariantQtyInput(this)">
                                             <button type="button" class="qty-btn qty-plus" onclick="changeVariantQty(this, 1)" data-group="{{ $group->id }}">+</button>
                                         </div>
+                                        <div class="moq-warning" id="moq-warn-{{ $val->id }}" style="display:none;"></div>
                                     </div>
                                 @endforeach
                             </div>
@@ -271,6 +277,7 @@
     border-bottom: 1px solid var(--border-color, #e2e8f0);
     transition: background 0.15s;
     gap: 12px;
+    flex-wrap: wrap;
 }
 .variant-row:last-child {
     border-bottom: none;
@@ -305,6 +312,29 @@
     font-size: 11px;
     color: var(--text-secondary, #64748b);
     margin-top: 1px;
+}
+.moq-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    color: #0088FF;
+    background: rgba(0, 136, 255, 0.08);
+    border: 1px solid rgba(0, 136, 255, 0.2);
+    border-radius: 20px;
+    padding: 1px 7px;
+    margin-top: 3px;
+    letter-spacing: 0.02em;
+}
+.moq-warning {
+    width: 100%;
+    font-size: 11px;
+    font-weight: 600;
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.06);
+    border-left: 3px solid #ef4444;
+    border-radius: 0 4px 4px 0;
+    padding: 4px 10px;
+    margin-top: 0;
 }
 /* +/- Controls */
 .variant-qty-controls {
@@ -432,7 +462,212 @@
 .btn-whatsapp-variant:hover {
     background: #128C7E;
 }
+
+/* ===== TOAST NOTIFICATION ===== */
+#amh-toast-container {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+.amh-toast {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08);
+    padding: 14px 18px;
+    min-width: 280px;
+    max-width: 360px;
+    pointer-events: all;
+    transform: translateX(120%);
+    opacity: 0;
+    transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease;
+    border-left: 4px solid #ef4444;
+    position: relative;
+}
+.amh-toast.amh-toast-success { border-left-color: #22c55e; }
+.amh-toast.amh-toast-warning { border-left-color: #f59e0b; }
+.amh-toast.amh-toast-info    { border-left-color: #0088FF; }
+.amh-toast.amh-toast-show {
+    transform: translateX(0);
+    opacity: 1;
+}
+.amh-toast-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+.amh-toast-body { flex: 1; }
+.amh-toast-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: #0f172a;
+    font-family: 'Montserrat', sans-serif;
+    margin-bottom: 2px;
+}
+.amh-toast-msg {
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.5;
+}
+.amh-toast-close {
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: color 0.15s;
+}
+.amh-toast-close:hover { color: #334155; }
+
+/* ===== MOQ VIOLATION POPUP ===== */
+#amh-moq-popup {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 99998;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(6px);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.amh-moq-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 0;
+    max-width: 440px;
+    width: 100%;
+    box-shadow: 0 25px 80px rgba(0,0,0,0.25);
+    overflow: hidden;
+    transform: scale(0.88) translateY(20px);
+    opacity: 0;
+    transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease;
+}
+#amh-moq-popup.show .amh-moq-card {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+}
+.amh-moq-header {
+    background: linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%);
+    padding: 24px 24px 16px;
+    border-bottom: 1px solid #fee2e2;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+.amh-moq-header-icon {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, #ef4444, #f97316);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: white;
+    flex-shrink: 0;
+}
+.amh-moq-header-text h4 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 4px;
+}
+.amh-moq-header-text p {
+    font-size: 12px;
+    color: #64748b;
+    margin: 0;
+    line-height: 1.5;
+}
+.amh-moq-body { padding: 18px 24px; }
+.amh-moq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+.amh-moq-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fef2f2;
+    border: 1px solid #fee2e2;
+    border-radius: 10px;
+    padding: 10px 14px;
+}
+.amh-moq-item-icon {
+    font-size: 16px;
+    color: #ef4444;
+    flex-shrink: 0;
+}
+.amh-moq-item-info { flex: 1; }
+.amh-moq-item-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+    font-family: 'Montserrat', sans-serif;
+}
+.amh-moq-item-detail {
+    font-size: 11px;
+    color: #ef4444;
+    margin-top: 1px;
+}
+.amh-moq-actions {
+    display: flex;
+    gap: 10px;
+}
+.amh-moq-btn-ok {
+    flex: 1;
+    padding: 12px;
+    background: linear-gradient(135deg, #ef4444, #f97316);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+    transition: all 0.2s;
+}
+.amh-moq-btn-ok:hover { opacity: 0.9; transform: translateY(-1px); }
 </style>
+
+{{-- ===== TOAST CONTAINER ===== --}}
+<div id="amh-toast-container"></div>
+
+{{-- ===== MOQ VIOLATION POPUP ===== --}}
+<div id="amh-moq-popup" style="display:none;" onclick="if(event.target===this) closeAmhMoqPopup()">
+    <div class="amh-moq-card">
+        <div class="amh-moq-header">
+            <div class="amh-moq-header-icon">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div class="amh-moq-header-text">
+                <h4>Minimum Order Quantity Not Met</h4>
+                <p>Please update the quantity for the following variants to meet the minimum required order.</p>
+            </div>
+        </div>
+        <div class="amh-moq-body">
+            <div class="amh-moq-list" id="amh-moq-list"></div>
+            <div class="amh-moq-actions">
+                <button class="amh-moq-btn-ok" onclick="closeAmhMoqPopup()">
+                    <i class="fa-solid fa-check"></i> Got it, I'll fix it
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 {{-- ===== CUSTOMER DETAILS MODAL ===== --}}
 <div id="variant-order-modal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.55); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:20px;">
@@ -505,7 +740,13 @@
     function openVariantOrderModal() {
         const selected = getSelectedVariants();
         if (selected.length === 0) {
-            alert('Please select at least one size/variant with quantity > 0');
+            showToast('No Variant Selected', 'Please select at least one size/variant with quantity > 0', 'warning');
+            return;
+        }
+        // MOQ validation
+        const violations = getMoqViolations();
+        if (violations.length > 0) {
+            showMoqPopup(violations);
             return;
         }
         document.getElementById('variant-order-modal').style.display = 'flex';
@@ -527,13 +768,13 @@
         const notes   = document.getElementById('v-notes').value.trim();
 
         if (!name || !phone || !address) {
-            alert('Please fill in all required fields (Name, Phone, Address).');
+            showToast('Missing Details', 'Please fill in Name, WhatsApp Number and Address.', 'warning');
             return;
         }
 
         const selected = getSelectedVariants();
         if (selected.length === 0) {
-            alert('No variants selected.');
+            showToast('No Variants', 'No variants selected. Please go back and select quantities.', 'error');
             return;
         }
 
@@ -578,13 +819,13 @@
 
                 closeVariantModal();
             } else {
-                alert(data.message || 'Something went wrong. Please try again.');
+                showToast('Order Failed', data.message || 'Something went wrong. Please try again.', 'error');
                 btn.disabled = false;
                 btn.style.opacity = '1';
                 btn.innerHTML = '<i class="fa-brands fa-whatsapp"></i> Generate Invoice & Order on WhatsApp';
             }
         } catch (err) {
-            alert('An error occurred. Please try again.');
+            showToast('Network Error', 'An error occurred. Please try again.', 'error');
             btn.disabled = false;
             btn.style.opacity = '1';
             btn.innerHTML = '<i class="fa-brands fa-whatsapp"></i> Generate Invoice & Order on WhatsApp';
@@ -599,15 +840,66 @@
     const CURRENCY = @json(env('CURRENCY_SYMBOL', '₹'));
     const WHATSAPP_NUMBER = @json(env('WHATSAPP_ADMIN_NUMBER', '917979747352'));
 
+    /**
+     * Check MOQ for a single input element.
+     * Returns true if valid (qty=0 or qty>=min_qty), false if violation.
+     */
+    function checkMoqForInput(input) {
+        const qty    = parseInt(input.value) || 0;
+        const minQty = parseInt(input.dataset.minQty) || 1;
+        const valueId   = input.dataset.valueId;
+        const valueName = input.dataset.valueName;
+        const warnEl = document.getElementById(`moq-warn-${valueId}`);
+
+        const isViolation = qty > 0 && qty < minQty;
+
+        // Visual feedback on input
+        input.style.borderColor = isViolation ? '#ef4444' : '';
+        input.style.color       = isViolation ? '#ef4444' : '';
+        input.style.fontWeight  = isViolation ? '800'     : '';
+
+        // Warning message below row
+        if (warnEl) {
+            if (isViolation) {
+                warnEl.textContent = `⚠ Min. ${minQty} pcs required for "${valueName}"`;
+                warnEl.style.display = 'block';
+            } else {
+                warnEl.style.display = 'none';
+            }
+        }
+        return !isViolation;
+    }
+
+    /** Validate ALL inputs and return array of violations */
+    function getMoqViolations() {
+        const allInputs = document.querySelectorAll('.variant-qty-input');
+        const violations = [];
+        allInputs.forEach(inp => {
+            const qty    = parseInt(inp.value) || 0;
+            const minQty = parseInt(inp.dataset.minQty) || 1;
+            if (qty > 0 && qty < minQty) {
+                violations.push({ name: inp.dataset.valueName, minQty, qty });
+            }
+        });
+        return violations;
+    }
+
     function changeVariantQty(btn, delta) {
         const row = btn.closest('.variant-row');
         const input = row.querySelector('.variant-qty-input');
         const groupId = row.dataset.group;
+        const minQty  = parseInt(row.dataset.minQty) || 1;
 
         let val = parseInt(input.value) || 0;
         val = Math.max(0, val + delta);
-        input.value = val;
 
+        // When clicking +, jump straight to min_qty if val would be 1..min_qty-1
+        if (delta > 0 && val > 0 && val < minQty) {
+            val = minQty;
+        }
+
+        input.value = val;
+        checkMoqForInput(input);
         row.classList.toggle('has-qty', val > 0);
         updateGroupCount(groupId);
         updateOrderSummary();
@@ -620,6 +912,7 @@
         let val = parseInt(input.value) || 0;
         if (val < 0) { input.value = 0; val = 0; }
 
+        checkMoqForInput(input);
         row.classList.toggle('has-qty', val > 0);
         updateGroupCount(groupId);
         updateOrderSummary();
@@ -679,7 +972,13 @@
     async function addVariantsToCart() {
         const selected = getSelectedVariants();
         if (selected.length === 0) {
-            alert('Please select at least one size/variant with quantity > 0');
+            showToast('No Variant Selected', 'Please select at least one size/variant with quantity > 0', 'warning');
+            return;
+        }
+        // MOQ validation
+        const violations = getMoqViolations();
+        if (violations.length > 0) {
+            showMoqPopup(violations);
             return;
         }
 
@@ -709,7 +1008,7 @@
                 // Redirect to cart page
                 window.location.href = data.redirect;
             } else {
-                alert(data.message || 'Failed to add to cart.');
+                showToast('Cart Error', data.message || 'Failed to add to cart.', 'error');
                 if (btn) {
                     btn.disabled = false;
                     btn.style.opacity = '1';
@@ -717,7 +1016,7 @@
                 }
             }
         } catch (err) {
-            alert('An error occurred. Please try again.');
+            showToast('Network Error', 'An error occurred. Please try again.', 'error');
             if (btn) {
                 btn.disabled = false;
                 btn.style.opacity = '1';
@@ -727,5 +1026,69 @@
     }
 
     // (WhatsApp flow is now handled via submitVariantOrder + modal above)
+
+    // ===== BEAUTIFUL POPUP SYSTEM =====
+    /**
+     * Show animated toast notification
+     * type: 'error' | 'success' | 'warning' | 'info'
+     */
+    function showToast(title, message, type = 'error', duration = 4000) {
+        const container = document.getElementById('amh-toast-container');
+        const icons = {
+            error:   '<i class="fa-solid fa-circle-xmark" style="color:#ef4444"></i>',
+            success: '<i class="fa-solid fa-circle-check" style="color:#22c55e"></i>',
+            warning: '<i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b"></i>',
+            info:    '<i class="fa-solid fa-circle-info" style="color:#0088FF"></i>',
+        };
+        const toast = document.createElement('div');
+        toast.className = `amh-toast amh-toast-${type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'info'}`;
+        toast.innerHTML = `
+            <div class="amh-toast-icon">${icons[type] || icons.error}</div>
+            <div class="amh-toast-body">
+                <div class="amh-toast-title">${title}</div>
+                ${message ? `<div class="amh-toast-msg">${message}</div>` : ''}
+            </div>
+            <button class="amh-toast-close" onclick="this.closest('.amh-toast').remove()">✕</button>
+        `;
+        container.appendChild(toast);
+        // Animate in
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => toast.classList.add('amh-toast-show'));
+        });
+        // Auto dismiss
+        setTimeout(() => {
+            toast.classList.remove('amh-toast-show');
+            setTimeout(() => toast.remove(), 400);
+        }, duration);
+    }
+
+    /** Show MOQ violation popup with detailed list */
+    function showMoqPopup(violations) {
+        const list = document.getElementById('amh-moq-list');
+        list.innerHTML = violations.map(v => `
+            <div class="amh-moq-item">
+                <div class="amh-moq-item-icon"><i class="fa-solid fa-circle-exclamation"></i></div>
+                <div class="amh-moq-item-info">
+                    <div class="amh-moq-item-name">${v.name}</div>
+                    <div class="amh-moq-item-detail">You entered ${v.qty} pcs &mdash; Min. required: <strong>${v.minQty} pcs</strong></div>
+                </div>
+            </div>
+        `).join('');
+        const popup = document.getElementById('amh-moq-popup');
+        popup.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => popup.classList.add('show'));
+        });
+    }
+
+    function closeAmhMoqPopup() {
+        const popup = document.getElementById('amh-moq-popup');
+        popup.classList.remove('show');
+        setTimeout(() => {
+            popup.style.display = 'none';
+            document.body.style.overflow = '';
+        }, 300);
+    }
 </script>
 @endsection
