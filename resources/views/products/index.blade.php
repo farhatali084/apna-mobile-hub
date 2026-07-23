@@ -376,9 +376,13 @@
             @php $brands = \App\Models\Brand::all(); @endphp
             @if($brands->count() > 0)
                 @foreach($brands as $brand)
-                    <a href="{{ route('products.index', ['brand' => $brand->slug]) }}" class="brand-card-rz brand-card" style="flex: 0 0 175px; width: 175px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; height: 135px; transition: all 0.3s; text-decoration: none;" onmouseover="this.style.borderColor='var(--accent-orange)'; this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'">
-                        <img src="{{ $brand->getImageUrl() }}" alt="{{ $brand->name }}" style="height: 52px; width: auto; max-width: 130px; object-fit: contain;">
-                        <span style="font-size: 13px; font-weight: 700; font-family: 'Montserrat', sans-serif; color: var(--text-primary); letter-spacing: -0.2px; text-transform: uppercase;">{{ $brand->name }}</span>
+                    <a href="{{ route('products.index', ['brand' => $brand->slug]) }}" class="brand-card-rz brand-card" style="flex: 0 0 175px; width: 175px; height: 185px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; transition: all 0.3s; text-decoration: none;" onmouseover="this.style.borderColor='var(--accent-orange)'; this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'">
+                        <div style="flex: 1; width: 100%; min-height: 0; overflow: hidden; background-color: #ffffff; display: flex; align-items: center; justify-content: center; padding: 10px;">
+                            <img src="{{ $brand->getImageUrl() }}" alt="{{ $brand->name }}" style="width: 100%; height: 100%; object-fit: contain;">
+                        </div>
+                        <div style="padding: 8px 10px; width: 100%; text-align: center; background-color: var(--bg-surface); border-top: 1px solid var(--border-color); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 12px; font-weight: 700; font-family: 'Montserrat', sans-serif; color: var(--text-primary); letter-spacing: -0.2px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $brand->name }}</span>
+                        </div>
                     </a>
                 @endforeach
             @else
@@ -395,9 +399,13 @@
                     ];
                 @endphp
                 @foreach($brandList as $brand)
-                    <a href="{{ route('products.index', ['brand' => $brand['slug']]) }}" class="brand-card-rz brand-card" style="flex: 0 0 175px; width: 175px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; height: 135px; transition: all 0.3s; text-decoration: none;" onmouseover="this.style.borderColor='var(--accent-orange)'; this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'">
-                        <img src="https://logo.clearbit.com/{{ $brand['domain'] }}" alt="{{ $brand['name'] }}" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($brand['name']) }}&background=fff&color=000&format=svg'" style="height: 52px; width: auto; max-width: 130px; object-fit: contain;">
-                        <span style="font-size: 13px; font-weight: 700; font-family: 'Montserrat', sans-serif; color: var(--text-primary); letter-spacing: -0.2px; text-transform: uppercase;">{{ $brand['name'] }}</span>
+                    <a href="{{ route('products.index', ['brand' => $brand['slug']]) }}" class="brand-card-rz brand-card" style="flex: 0 0 175px; width: 175px; height: 185px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; transition: all 0.3s; text-decoration: none;" onmouseover="this.style.borderColor='var(--accent-orange)'; this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'">
+                        <div style="flex: 1; width: 100%; min-height: 0; overflow: hidden; background-color: #ffffff; display: flex; align-items: center; justify-content: center; padding: 10px;">
+                            <img src="https://logo.clearbit.com/{{ $brand['domain'] }}" alt="{{ $brand['name'] }}" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($brand['name']) }}&background=fff&color=000&format=svg'" style="width: 100%; height: 100%; object-fit: contain;">
+                        </div>
+                        <div style="padding: 8px 10px; width: 100%; text-align: center; background-color: var(--bg-surface); border-top: 1px solid var(--border-color); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 12px; font-weight: 700; font-family: 'Montserrat', sans-serif; color: var(--text-primary); letter-spacing: -0.2px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $brand['name'] }}</span>
+                        </div>
                     </a>
                 @endforeach
             @endif
