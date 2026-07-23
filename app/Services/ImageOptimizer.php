@@ -83,6 +83,13 @@ class ImageOptimizer
                 imagedestroy($image);
 
                 if ($success && file_exists($fullPath)) {
+                    $storageFullPath = storage_path('app/public/' . $relativePath);
+                    $storageDir = dirname($storageFullPath);
+                    if (!is_dir($storageDir)) {
+                        @mkdir($storageDir, 0755, true);
+                    }
+                    @copy($fullPath, $storageFullPath);
+
                     return $relativePath;
                 }
             }
@@ -101,6 +108,14 @@ class ImageOptimizer
         }
 
         @copy($realPath, $fallbackFull);
+
+        $fallbackStorageFull = storage_path('app/public/' . $fallbackRelative);
+        $fallbackStorageDir = dirname($fallbackStorageFull);
+        if (!is_dir($fallbackStorageDir)) {
+            @mkdir($fallbackStorageDir, 0755, true);
+        }
+        @copy($fallbackFull, $fallbackStorageFull);
+
         return $fallbackRelative;
     }
 }

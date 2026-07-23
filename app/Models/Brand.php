@@ -30,8 +30,9 @@ class Brand extends Model
             if (Str::startsWith($this->logo, ['http://', 'https://'])) {
                 return $this->logo;
             }
-            if (Str::startsWith($this->logo, ['storage/', '/storage/'])) {
-                return asset($this->logo);
+            $cleanPath = ltrim($this->logo, '/');
+            if (Str::startsWith($cleanPath, ['images/', 'storage/'])) {
+                return asset($cleanPath);
             }
             return Storage::url($this->logo);
         }
