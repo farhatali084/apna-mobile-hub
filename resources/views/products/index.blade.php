@@ -229,6 +229,56 @@
         <div class="hero-transition-fade"></div>
     </section>
 
+    <!-- 3.5 Top Brands Section (Auto-Scrolling Slider) -->
+    <section class="brands-section-rz container" id="top-brands" style="padding-top: 40px; padding-bottom: 40px;">
+        <div class="section-title-wrapper" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <h2 class="category-section-title" style="margin: 0;">Top Brands</h2>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button id="brands-prev" class="slider-arrow-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #fff; border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition);"><i class="fa-solid fa-chevron-left" style="width: 16px; height: 16px;"></i></button>
+                <button id="brands-next" class="slider-arrow-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #fff; border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition);"><i class="fa-solid fa-chevron-right" style="width: 16px; height: 16px;"></i></button>
+            </div>
+        </div>
+        
+        <div id="brands-slider-container" style="overflow-x: auto; scroll-behavior: smooth; display: flex; gap: 20px; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 10px;">
+            @php $brands = \App\Models\Brand::all(); @endphp
+            @if($brands->count() > 0)
+                @foreach($brands as $brand)
+                    <a href="{{ route('products.index', ['brand' => $brand->slug]) }}" class="brand-card-rz brand-card" style="flex: 0 0 175px; width: 175px; height: 185px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; transition: all 0.3s; text-decoration: none;" onmouseover="this.style.borderColor='var(--accent-orange)'; this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'">
+                        <div style="flex: 1; width: 100%; min-height: 0; overflow: hidden; background-color: #ffffff; display: flex; align-items: center; justify-content: center; padding: 10px;">
+                            <img src="{{ $brand->getImageUrl() }}" alt="{{ $brand->name }}" style="width: 100%; height: 100%; object-fit: contain;">
+                        </div>
+                        <div style="padding: 8px 10px; width: 100%; text-align: center; background-color: var(--bg-surface); border-top: 1px solid var(--border-color); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 12px; font-weight: 700; font-family: 'Montserrat', sans-serif; color: var(--text-primary); letter-spacing: -0.2px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $brand->name }}</span>
+                        </div>
+                    </a>
+                @endforeach
+            @else
+                <!-- Fallback Brands -->
+                @php
+                    $brandList = [
+                        ['name' => 'Apple', 'slug' => 'apple', 'domain' => 'apple.com'],
+                        ['name' => 'Samsung', 'slug' => 'samsung', 'domain' => 'samsung.com'],
+                        ['name' => 'OnePlus', 'slug' => 'oneplus', 'domain' => 'oneplus.com'],
+                        ['name' => 'Xiaomi', 'slug' => 'xiaomi', 'domain' => 'mi.com'],
+                        ['name' => 'realme', 'slug' => 'realme', 'domain' => 'realme.com'],
+                        ['name' => 'boAt', 'slug' => 'boat', 'domain' => 'boat-lifestyle.com'],
+                        ['name' => 'ANKER', 'slug' => 'anker', 'domain' => 'anker.com'],
+                    ];
+                @endphp
+                @foreach($brandList as $brand)
+                    <a href="{{ route('products.index', ['brand' => $brand['slug']]) }}" class="brand-card-rz brand-card" style="flex: 0 0 175px; width: 175px; height: 185px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; transition: all 0.3s; text-decoration: none;" onmouseover="this.style.borderColor='var(--accent-orange)'; this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'">
+                        <div style="flex: 1; width: 100%; min-height: 0; overflow: hidden; background-color: #ffffff; display: flex; align-items: center; justify-content: center; padding: 10px;">
+                            <img src="https://logo.clearbit.com/{{ $brand['domain'] }}" alt="{{ $brand['name'] }}" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($brand['name']) }}&background=fff&color=000&format=svg'" style="width: 100%; height: 100%; object-fit: contain;">
+                        </div>
+                        <div style="padding: 8px 10px; width: 100%; text-align: center; background-color: var(--bg-surface); border-top: 1px solid var(--border-color); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 12px; font-weight: 700; font-family: 'Montserrat', sans-serif; color: var(--text-primary); letter-spacing: -0.2px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $brand['name'] }}</span>
+                        </div>
+                    </a>
+                @endforeach
+            @endif
+        </div>
+    </section>
+
     <!-- 1.5 B2B Trust Metrics Strip -->
     <section class="metrics-strip-rz">
         <div class="metrics-container-rz">
@@ -361,56 +411,6 @@
         </div>
     </section>
     @endif
-
-    <!-- 3.5 Top Brands Section (Auto-Scrolling Slider) -->
-    <section class="brands-section-rz container" id="top-brands" style="padding-top: 0; padding-bottom: 60px;">
-        <div class="section-title-wrapper" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-            <h2 class="category-section-title" style="margin: 0;">Top Brands</h2>
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <button id="brands-prev" class="slider-arrow-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #fff; border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition);"><i class="fa-solid fa-chevron-left" style="width: 16px; height: 16px;"></i></button>
-                <button id="brands-next" class="slider-arrow-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #fff; border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition);"><i class="fa-solid fa-chevron-right" style="width: 16px; height: 16px;"></i></button>
-            </div>
-        </div>
-        
-        <div id="brands-slider-container" style="overflow-x: auto; scroll-behavior: smooth; display: flex; gap: 20px; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 10px;">
-            @php $brands = \App\Models\Brand::all(); @endphp
-            @if($brands->count() > 0)
-                @foreach($brands as $brand)
-                    <a href="{{ route('products.index', ['brand' => $brand->slug]) }}" class="brand-card-rz brand-card" style="flex: 0 0 175px; width: 175px; height: 185px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; transition: all 0.3s; text-decoration: none;" onmouseover="this.style.borderColor='var(--accent-orange)'; this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'">
-                        <div style="flex: 1; width: 100%; min-height: 0; overflow: hidden; background-color: #ffffff; display: flex; align-items: center; justify-content: center; padding: 10px;">
-                            <img src="{{ $brand->getImageUrl() }}" alt="{{ $brand->name }}" style="width: 100%; height: 100%; object-fit: contain;">
-                        </div>
-                        <div style="padding: 8px 10px; width: 100%; text-align: center; background-color: var(--bg-surface); border-top: 1px solid var(--border-color); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
-                            <span style="font-size: 12px; font-weight: 700; font-family: 'Montserrat', sans-serif; color: var(--text-primary); letter-spacing: -0.2px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $brand->name }}</span>
-                        </div>
-                    </a>
-                @endforeach
-            @else
-                <!-- Fallback Brands -->
-                @php
-                    $brandList = [
-                        ['name' => 'Apple', 'slug' => 'apple', 'domain' => 'apple.com'],
-                        ['name' => 'Samsung', 'slug' => 'samsung', 'domain' => 'samsung.com'],
-                        ['name' => 'OnePlus', 'slug' => 'oneplus', 'domain' => 'oneplus.com'],
-                        ['name' => 'Xiaomi', 'slug' => 'xiaomi', 'domain' => 'mi.com'],
-                        ['name' => 'realme', 'slug' => 'realme', 'domain' => 'realme.com'],
-                        ['name' => 'boAt', 'slug' => 'boat', 'domain' => 'boat-lifestyle.com'],
-                        ['name' => 'ANKER', 'slug' => 'anker', 'domain' => 'anker.com'],
-                    ];
-                @endphp
-                @foreach($brandList as $brand)
-                    <a href="{{ route('products.index', ['brand' => $brand['slug']]) }}" class="brand-card-rz brand-card" style="flex: 0 0 175px; width: 175px; height: 185px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; transition: all 0.3s; text-decoration: none;" onmouseover="this.style.borderColor='var(--accent-orange)'; this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'">
-                        <div style="flex: 1; width: 100%; min-height: 0; overflow: hidden; background-color: #ffffff; display: flex; align-items: center; justify-content: center; padding: 10px;">
-                            <img src="https://logo.clearbit.com/{{ $brand['domain'] }}" alt="{{ $brand['name'] }}" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($brand['name']) }}&background=fff&color=000&format=svg'" style="width: 100%; height: 100%; object-fit: contain;">
-                        </div>
-                        <div style="padding: 8px 10px; width: 100%; text-align: center; background-color: var(--bg-surface); border-top: 1px solid var(--border-color); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
-                            <span style="font-size: 12px; font-weight: 700; font-family: 'Montserrat', sans-serif; color: var(--text-primary); letter-spacing: -0.2px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $brand['name'] }}</span>
-                        </div>
-                    </a>
-                @endforeach
-            @endif
-        </div>
-    </section>
 
     <!-- 3.7 Best Sellers Section (Auto-Scrolling Slider) -->
     @if(isset($bestSellers) && $bestSellers->count() > 0)
